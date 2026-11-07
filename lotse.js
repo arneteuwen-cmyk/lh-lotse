@@ -88,7 +88,7 @@
     '.fig .glanz{fill:#fff;stroke:none}',
     '.fig .fl{fill:' + EINST.rot + '}',
     '.fig .zeichnen{opacity:0;stroke-dasharray:60;stroke-dashoffset:60}',
-    '.knopf{position:fixed;right:18px;bottom:18px;width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
+    '.knopf{position:fixed;right:18px;bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
     '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:4px;border-radius:12px}',
     '.knopf .schild{position:absolute;right:92px;bottom:64px;white-space:nowrap;background:#1a1a1a;color:#fff;font-size:14px;line-height:1.2;padding:8px 12px;border-radius:14px 14px 2px 14px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}',
     '.knopf:hover .schild,.knopf.zeigen .schild,.knopf:focus-visible .schild{opacity:1;transform:none}',
@@ -153,7 +153,7 @@
     '.datei-chip{font-size:12px;color:#444;padding:0 12px 6px}',
     '.fuss-ki{font-size:11px;color:#777;text-align:center;padding:0 10px 8px}',
     '.nur-vorleser{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
-    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{right:8px;bottom:8px;width:76px;height:84px}.knopf .schild{display:none}}',
+    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{right:8px;bottom:var(--lotse-unten,8px);width:76px;height:84px}.knopf .schild{display:none}}',
     '@media print{.knopf,.fenster{display:none!important}}'
   ].join('\n');
 
@@ -178,7 +178,16 @@
     '<button type="submit" class="rund senden" aria-label="Senden"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>' +
     '</form><div class="fuss-ki">Antworten erstellt eine KI und können Fehler enthalten. Verbindlich ist nur das Angebot unseres Teams.</div></section>';
 
-  function start() { document.body.appendChild(host); einrichten(); }
+  // Feste Elemente der Website unten rechts (z. B. die rote Kontakt-Ecke .cta-fixed) nicht verdecken: Lotse darüber setzen.
+  function platz() {
+    var unten = 0, kandidaten = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
+    for (var i = 0; i < kandidaten.length; i++) {
+      var r = kandidaten[i].getBoundingClientRect();
+      if (r.width > 0 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) unten = Math.max(unten, innerHeight - r.top);
+    }
+    host.style.setProperty('--lotse-unten', unten ? Math.round(unten + 8) + 'px' : '');
+  }
+  function start() { document.body.appendChild(host); einrichten(); platz(); setTimeout(platz, 1500); addEventListener('resize', platz); }
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
