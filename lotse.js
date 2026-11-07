@@ -89,6 +89,7 @@
     '.fig .fl{fill:' + EINST.rot + '}',
     '.fig .zeichnen{opacity:0;stroke-dasharray:60;stroke-dashoffset:60}',
     '.knopf{position:fixed;right:18px;bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
+    '.knopf .fig{filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 1px 3px rgba(0,0,0,.25))}',
     '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:4px;border-radius:12px}',
     '.knopf .schild{position:absolute;right:92px;bottom:64px;white-space:nowrap;background:#1a1a1a;color:#fff;font-size:14px;line-height:1.2;padding:8px 12px;border-radius:14px 14px 2px 14px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}',
     '.knopf:hover .schild,.knopf.zeigen .schild,.knopf:focus-visible .schild{opacity:1;transform:none}',
