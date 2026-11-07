@@ -62,15 +62,18 @@
   function figurSvg(merkmal, klein) {
     return '<svg class="fig' + (klein ? ' klein' : '') + '" viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
       '<g class="koerper">' +
+      '<g class="beine-stehen"><path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/></g>' +
+      '<g class="beine-sitzen"><path d="M50 72c-5 1-10 2-14 3c-1 4-1 9 0 13M50 72c-3 2-6 5-8 7c0 4 1 8 2 12"/><path d="M32 88h5M40 91h5"/></g>' +
+      '<g class="oben">' +
       '<path d="M50 52v20"/>' +
       '<path class="arm-l" d="M50 58c-6 2-10 6-13 10"/><path class="arm-r" d="M50 58c6 2 10 6 13 10"/>' +
-      '<path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/>' +
       '<circle class="kopf" cx="50" cy="32" r="19"/>' +
       '<circle class="wange" cx="38.5" cy="38" r="3.2"/><circle class="wange" cx="61.5" cy="38" r="3.2"/>' +
-      '<g class="augen"><ellipse cx="43" cy="31" rx="2.3" ry="2.8" class="p"/><ellipse cx="57" cy="31" rx="2.3" ry="2.8" class="p"/>' +
-      '<circle cx="43.8" cy="30" r=".8" class="glanz"/><circle cx="57.8" cy="30" r=".8" class="glanz"/></g>' +
+      '<g class="blick"><g class="augen"><ellipse cx="43" cy="31" rx="2.3" ry="2.8" class="p"/><ellipse cx="57" cy="31" rx="2.3" ry="2.8" class="p"/>' +
+      '<circle cx="43.8" cy="30" r=".8" class="glanz"/><circle cx="57.8" cy="30" r=".8" class="glanz"/></g></g>' +
       '<path class="mund" d="M45 39.5c3 3.2 7 3.2 10 0"/>' +
       (MERKMALE[merkmal] || MERKMALE.muetze) +
+      '</g>' +
       '<path class="zeichnen r" d="M28 95c8-4 14 3 22-1s12 2 20-1"/>' +
       '</g></svg>';
   }
@@ -103,7 +106,11 @@
     ' .denkt .zeichnen{opacity:1;animation:zeichnen 1.4s linear infinite}',
     ' .denkt .arm-r{transform:rotate(28deg);transform-origin:50px 56px;transition:transform .3s}',
     '}',
-    '.schaut-links .augen{transform:translateX(-2px)}.schaut-unten .augen{transform:translateY(1.6px)}',
+    '.blick{transition:transform .15s}.schaut-links .blick{transform:translateX(-2px)!important}.schaut-unten .blick{transform:translateY(1.6px)!important}',
+    '.beine-sitzen{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
+    '.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
+    '.knopf.sitzt{pointer-events:none}.knopf.sitzt .fig *{pointer-events:visiblePainted}',
+    '@media (prefers-reduced-motion:no-preference){.knopf{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.springt .koerper{animation:huepfen .6s ease-out 1}}',
     '@keyframes atmen{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}',
     '@keyframes blinzeln{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}',
     '@keyframes welle{0%,100%{opacity:.25}50%{opacity:1}}',
@@ -215,12 +222,55 @@
     }
     schreib('lh-lotse-bereich', BEREICH);
 
+    // Sitzen und Aufspringen: Ohne Aktion setzt sich der Lotse nach einer Weile auf die schräge Kante der Kontakt-Ecke.
+    // Maus darüber, Fokus oder Antippen: er springt auf. Ohne Kontakt-Ecke bleibt er stehen.
+    var dx = 0, dy = 0, sitzUhr = null;
+    function ecke() {
+      var k = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
+      for (var i = 0; i < k.length; i++) { var r = k[i].getBoundingClientRect(); if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) return r; }
+      return null;
+    }
+    function hinsetzen() {
+      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover')) return;
+      var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
+      var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;
+      var tx = r.right - r.width * 0.24, ty = r.top + (r.right - tx) * (r.height / r.width);
+      dx = Math.round(tx - hx); dy = Math.round(ty - hy + 1.5 * sk);
+      knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
+    }
+    function aufspringen() {
+      if (knopf.classList.contains('sitzt')) {
+        knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = '';
+        knopf.classList.add('springt'); setTimeout(function () { knopf.classList.remove('springt'); }, 650);
+      }
+      planen();
+    }
+    function planen() { clearTimeout(sitzUhr); sitzUhr = setTimeout(hinsetzen, 8000); }
+    knopf.addEventListener('mouseenter', aufspringen); knopf.addEventListener('focus', aufspringen);
+    knopf.addEventListener('touchstart', aufspringen, { passive: true });
+    addEventListener('resize', function () { if (knopf.classList.contains('sitzt')) { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; setTimeout(hinsetzen, 50); } });
+    planen();
+
+    // Augen folgen der Maus (nur mit Maus, nicht bei reduzierter Bewegung).
+    if (window.matchMedia && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var plan = false, mx = 0, my = 0;
+      document.addEventListener('mousemove', function (e) {
+        mx = e.clientX; my = e.clientY; if (plan) return; plan = true;
+        requestAnimationFrame(function () {
+          plan = false; if (knopf.hidden) return;
+          var k = knopf.getBoundingClientRect(), cx = k.left + k.width / 2, cy = k.top + k.height * 0.32, vx = mx - cx, vy = my - cy, l = Math.sqrt(vx * vx + vy * vy) || 1;
+          var b = knopf.querySelector('.blick'); if (b) b.style.transform = 'translate(' + (vx / l * 1.8).toFixed(2) + 'px,' + (vy / l * 1.5).toFixed(2) + 'px)';
+        });
+      }, { passive: true });
+    }
+
     function oeffnen() {
+      knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; clearTimeout(sitzUhr);
       fenster.hidden = false; knopf.hidden = true; knopf.setAttribute('aria-expanded', 'true');
       if (!zustand.angezeigt.length) begruessen(); else wiederherstellen();
       setTimeout(function () { feld.focus(); }, 30);
     }
-    function schliessen() { fenster.hidden = true; knopf.hidden = false; knopf.setAttribute('aria-expanded', 'false'); knopf.focus(); }
+    function schliessen() { fenster.hidden = true; knopf.hidden = false; knopf.setAttribute('aria-expanded', 'false'); knopf.focus(); planen(); }
     knopf.addEventListener('click', oeffnen);
     zu.addEventListener('click', schliessen);
     fenster.addEventListener('keydown', function (e) { if (e.key === 'Escape') schliessen(); });
