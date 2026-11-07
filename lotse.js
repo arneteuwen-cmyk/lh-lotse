@@ -141,6 +141,7 @@
     '.leiste2{display:flex;justify-content:space-between;gap:8px;padding:6px 14px;border-bottom:1px solid #eee}',
     '.leiste2 button{border:0;background:none;padding:6px 0;font-size:13px;color:#1a1a1a;text-decoration:underline;cursor:pointer;min-height:32px}',
     '.ruhe .koerper,.ruhe .augen,.ruhe .w1,.ruhe .w2,.ruhe .lz,.ruhe .zzz path{animation:none!important}.ruhe .blick{transform:none!important}',
+    '.quellen{margin-top:6px;font-size:12.5px;color:#555}.quellen a{color:#1a1a1a;font-weight:600}',
     '.beine-sitzen{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
     '.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
     '.knopf.sitzt{pointer-events:none}.knopf.sitzt .fig *{pointer-events:visiblePainted}',
@@ -393,9 +394,38 @@
     });
     zeige(null, box, false);
   }
+  // Antwort Wort für Wort einblenden (höchstens ~0,8 s). Vorleseprogramme bekommen den ganzen Text auf einmal.
+  var BEWEGUNG = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function quellenZeigen(el, quellen) {
+    if (!quellen || !quellen.length) return;
+    var q = document.createElement('div'); q.className = 'quellen';
+    q.innerHTML = 'Mehr dazu: ' + quellen.map(function (x) {
+      return /^https:\/\//.test(x.url) ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.titel) + ' ↗</a>' : '';
+    }).filter(Boolean).join(' · ');
+    el.appendChild(q);
+  }
+  function zeigeFliessend(text, quellen) {
+    zustand.angezeigt.push(['lotse', text, quellen || []]); sichern();
+    var el = document.createElement('div'); el.className = 'msg lotse';
+    var vor = document.createElement('span'); vor.className = 'nur-vorleser'; vor.textContent = text;
+    var sicht = document.createElement('span'); sicht.setAttribute('aria-hidden', 'true');
+    el.appendChild(vor); el.appendChild(sicht);
+    var v = $('.verlauf'); v.appendChild(el);
+    var woerter = text.split(/(\s+)/), i = 0;
+    if (!BEWEGUNG || woerter.length < 4) { sicht.textContent = text; quellenZeigen(el, quellen); v.scrollTop = v.scrollHeight; return el; }
+    var proSchritt = Math.max(1, Math.ceil(woerter.length / 40));
+    (function weiter() {
+      i = Math.min(woerter.length, i + proSchritt * 2);
+      sicht.textContent = woerter.slice(0, i).join('');
+      v.scrollTop = v.scrollHeight;
+      if (i < woerter.length) setTimeout(weiter, 20); else { quellenZeigen(el, quellen); v.scrollTop = v.scrollHeight; }
+    })();
+    return el;
+  }
+
   function wiederherstellen() {
     if ($('.verlauf').childElementCount) return;
-    zustand.angezeigt.forEach(function (m) { zeige(m[0], m[1], false); });
+    zustand.angezeigt.forEach(function (m) { var el = zeige(m[0], m[1], false); if (m[2]) quellenZeigen(el, m[2]); });
     if (zustand.positionen.length) tabelleZeigen();
   }
 
@@ -467,13 +497,17 @@
     var body = { art: 'frage', schluessel: EINST.schluessel, besucher: besucher, bereich: BEREICH, seite: location.pathname, nachrichten: zustand.nachrichten.slice(-16) };
     if (a && a.daten) body.datei = { name: a.name, typ: a.typ, daten: a.daten };
     beschaeftigt = true; $('.senden').disabled = true; denkt(true);
-    var warte = zeige('hinweis', a ? 'Der Lotse liest Ihre Datei …' : 'Der Lotse schreibt …', false);
+    var warte = zeige('hinweis', a ? 'Der Lotse öffnet Ihre Datei …' : 'Der Lotse liest nach …', false);
+    var schritte = a ? [[2500, 'Der Lotse liest die Positionen …'], [9000, 'Noch einen Moment – die Liste ist etwas länger …'], [25000, 'Fast fertig …']]
+      : [[1400, 'Der Lotse sucht die passende Stelle …'], [2800, 'Der Lotse formuliert die Antwort …'], [8000, 'Das dauert etwas länger – gleich fertig …']];
+    var statusUhren = schritte.map(function (x) { return setTimeout(function () { warte.textContent = x[1]; }, x[0]); });
+    var statusEnde = function () { statusUhren.forEach(clearTimeout); warte.remove(); };
     fetch(EINST.adresse, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        warte.remove();
+        statusEnde();
         var antwort = (d && d.antwort) || 'Das konnte ich gerade nicht beantworten.';
-        zeige('lotse', antwort);
+        zeigeFliessend(antwort, d.quellen || []);
         if (/Krefeld/.test(antwort) && /Wuppertal/.test(antwort) && /(ansehen|besuch|showroom|ausstell|probe|anschauen|vorbei)/i.test(text + ' ' + antwort)) showroomKarte();
         var kurz = antwort;
         if (d.positionen && d.positionen.length) {
@@ -483,7 +517,7 @@
         zustand.nachrichten.push({ role: 'assistant', content: kurz.slice(0, 4000) }); sichern();
       })
       .catch(function () {
-        warte.remove(); zustand.nachrichten.pop(); sichern();
+        statusEnde(); zustand.nachrichten.pop(); sichern();
         var box = document.createElement('div'); box.className = 'tipps'; box.setAttribute('role', 'alert');
         var m = document.createElement('div'); m.className = 'msg lotse'; m.textContent = 'Das hat nicht geklappt – ich bin gerade nicht erreichbar.';
         var b = document.createElement('button'); b.type = 'button'; b.className = 'aktion'; b.textContent = 'Erneut versuchen';

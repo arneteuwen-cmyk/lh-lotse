@@ -27,7 +27,7 @@ def antwort_n8n(route):
              "positionen": [{"hersteller": "Lintex", "artikel": "Edge Wall", "ausfuehrung": "grau", "menge": "8", "hinweis": ""},
                             {"hersteller": "", "artikel": "Stehtisch", "ausfuehrung": "", "menge": "2", "hinweis": "Hersteller fehlt"}]}
     else:
-        d = {"ok": True, "antwort": "Sie können Produkte in unseren Showrooms in Krefeld und Wuppertal ansehen.", "aktion": "keine", "positionen": []}
+        d = {"ok": True, "antwort": "Sie können Produkte in unseren Showrooms in Krefeld und Wuppertal ansehen. Muster liegen in beiden Häusern aus.", "aktion": "keine", "positionen": [], "quellen": [{"titel": "Lintex", "url": "https://lechner-hayn-staging.dev10.econsor-programming.de/marke/lintex/"}]}
     route.fulfill(status=200, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}, body=json.dumps(d))
 
 
@@ -79,6 +79,9 @@ with sync_playwright() as p:
     ok(s.locator("#lh-lotse >> css=.fenster").is_visible(), "Klick auf Blase öffnet den Lotsen")
     s.locator("#lh-lotse >> css=textarea").fill("Kann ich das ansehen?"); s.keyboard.press("Enter"); s.wait_for_timeout(800)
     ok(s.evaluate(f"!!{J}.querySelector('.karte')"), "Showroom-Karte mit Adressen")
+    s.wait_for_timeout(1200)
+    ok(s.evaluate(J + ".querySelector('.quellen a') && " + J + ".querySelector('.quellen a').href.includes('/marke/lintex/')"), "Quellen-Link unter der Antwort")
+    ok(s.evaluate(f"[...{J}.querySelectorAll('.msg.lotse')].some(m=>m.innerText.includes('Muster liegen in beiden'))"), "Antwort vollständig eingeflossen")
     s.locator("#lh-lotse >> css=textarea").fill("Liste: 8 Edge Wall, 2 Stehtische"); s.keyboard.press("Enter"); s.wait_for_timeout(800)
     ok(s.evaluate(f"!!{J}.querySelector('.zeige-liste .fig.zeigt') && !!{J}.querySelector('.tabelle')"), "Lotse zeigt auf die Tabelle")
     s.screenshot(path=str(AUS / "z_tabelle.png"))
