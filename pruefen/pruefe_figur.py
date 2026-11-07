@@ -49,7 +49,7 @@ ECKE = lambda vp: {"x": vp[0] - 300, "y": vp[1] - 360, "width": 300, "height": 3
 with sync_playwright() as p:
     b = p.chromium.launch()
     # 1 Nacht: schläft, sitzt, Zzz sichtbar, Abendgruß
-    c, s = seite(b, "?lotse-zeit=nacht&lotse-saison=keine")
+    c, s = seite(b, "?lotse-zeit=nacht&lotse-saison=keine&lotse-stil=verspielt")
     s.wait_for_timeout(9000)
     k = s.evaluate(f"(()=>{{const r={J}; return {{fig:r.querySelector('.knopf .fig').getAttribute('class'), knopf:r.querySelector('.knopf').className, zzz:getComputedStyle(r.querySelector('.knopf .zzz')).display}}}})()")
     ok("schlaeft" in k["fig"] and "sitzt" in k["knopf"] and k["zzz"] != "none", f"Nacht: schläft auf der Kante {k}")
@@ -61,9 +61,17 @@ with sync_playwright() as p:
     v = s.evaluate(f"{J}.querySelector('.verlauf').innerText")
     ok("nächsten Werktag" in v, "Nacht: Hinweis Team am nächsten Werktag")
     c.close()
+    # 1b Nacht in der ruhigen Fassung: kein Schlafen, nur der Hinweis im Fenster
+    c, s = seite(b, "?lotse-zeit=nacht&lotse-saison=keine")
+    s.wait_for_timeout(9000)
+    k = s.evaluate(f"(()=>{{const r={J}; return {{fig:r.querySelector('.knopf .fig').getAttribute('class'), knopf:r.querySelector('.knopf').className}}}})()")
+    ok("schlaeft" not in k["fig"] and "sitzt" in k["knopf"], f"ruhig Nacht: sitzt wach {k}")
+    s.evaluate(f"{J}.querySelector('.knopf').click()"); s.wait_for_timeout(300)
+    ok("nächsten Werktag" in s.evaluate(f"{J}.querySelector('.verlauf').innerText"), "ruhig Nacht: Hinweis Team am nächsten Werktag")
+    c.close()
     # 2 Dezember und Sommer
     for saison, sel in [("dezember", ".xmas"), ("sommer", ".brille")]:
-        c, s = seite(b, f"?lotse-zeit=tag&lotse-saison={saison}")
+        c, s = seite(b, f"?lotse-zeit=tag&lotse-saison={saison}" + ("&lotse-stil=verspielt" if saison == "sommer" else ""))
         d = s.evaluate(f"getComputedStyle({J}.querySelector('.knopf {sel}')).display")
         ok(d != "none", f"{saison}: {sel} sichtbar")
         s.screenshot(path=str(AUS / f"z_{saison}.png"), clip=ECKE((1440, 900)))
@@ -89,7 +97,7 @@ with sync_playwright() as p:
     s.locator("#lh-lotse >> css=input[name=email]").fill("test@example.com")
     s.locator("#lh-lotse >> css=input[name=ds]").check()
     s.locator("#lh-lotse >> css=.formular [type=submit]").click(); s.wait_for_timeout(500)
-    ok(s.evaluate(f"!!{J}.querySelector('.mini-zeile .fig.freut')"), "Luftsprung nach der Anfrage")
+    ok(not s.evaluate(f"!!{J}.querySelector('.mini-zeile .fig.freut')") and s.evaluate(f"!!{J}.querySelector('.mini-zeile')"), "ruhig: Dank ohne Luftsprung")
     s.screenshot(path=str(AUS / "z_freude.png"))
     # 4 Ruhe-Schalter und Mensch
     s.locator("#lh-lotse >> css=.ruhig").click(); s.wait_for_timeout(200)

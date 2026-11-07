@@ -59,6 +59,11 @@
   var SAISON = (QS.match(/lotse-saison=([a-z]+)/) || [])[1] ||
     (JETZT.monat === 12 && JETZT.datum <= 26 ? 'dezember' : ((JETZT.monat === 6 && JETZT.datum >= 21) || JETZT.monat === 7 || JETZT.monat === 8) ? 'sommer' : '');
   if (SAISON === 'keine') SAISON = '';
+  // Stil (Arne 07.11.2026): „ruhig“ ist Standard – feine Linie, eine Erkennungsgeste (sitzt auf der Kontakt-Ecke), Weihnachtsmütze bleibt.
+  // „verspielt“ nur zum Vergleich: ?lotse-stil=verspielt oder data-stil="verspielt" am Script-Tag.
+  var STIL = (QS.match(/lotse-stil=(ruhig|verspielt)/) || [])[1] || (skript && skript.getAttribute('data-stil')) || 'ruhig';
+  var RUHIG = STIL !== 'verspielt';
+  if (RUHIG && SAISON === 'sommer') SAISON = '';
   var T = TEXTE[BEREICH] || (BEREICH.indexOf('hersteller-') === 0 ? TEXTE.hersteller : TEXTE.allgemein);
 
   // ---------- Figur (Linien, SVG) ----------
@@ -110,6 +115,7 @@
     '.fig .zeichnen{opacity:0;stroke-dasharray:60;stroke-dashoffset:60}',
     '.knopf{position:fixed;right:18px;bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
     '.knopf .fig{filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 1px 3px rgba(0,0,0,.25))}',
+    ':host(.stil-ruhig) .knopf .fig{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 1px 2px rgba(0,0,0,.18))}',
     '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:4px;border-radius:12px}',
     '.knopf .schild{position:absolute;right:92px;bottom:64px;white-space:nowrap;background:#1a1a1a;color:#fff;font-size:14px;line-height:1.2;padding:8px 12px;border-radius:14px 14px 2px 14px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}',
     '.knopf:hover .schild,.knopf.zeigen .schild,.knopf:focus-visible .schild{opacity:1;transform:none}',
@@ -142,6 +148,15 @@
     '.leiste2 button{border:0;background:none;padding:6px 0;font-size:13px;color:#1a1a1a;text-decoration:underline;cursor:pointer;min-height:32px}',
     '.ruhe .koerper,.ruhe .augen,.ruhe .w1,.ruhe .w2,.ruhe .lz,.ruhe .zzz path{animation:none!important}.ruhe .blick{transform:none!important}',
     '.quellen{margin-top:6px;font-size:12.5px;color:#555}.quellen a{color:#1a1a1a;font-weight:600}',
+    ':host(.stil-ruhig) .fig path,:host(.stil-ruhig) .fig circle,:host(.stil-ruhig) .fig rect,:host(.stil-ruhig) .fig ellipse{stroke-width:2}',
+    ':host(.stil-ruhig) .fig .p,:host(.stil-ruhig) .fig .glanz,:host(.stil-ruhig) .fig .wange{stroke:none}',
+    ':host(.stil-ruhig) .wange{display:none}',
+    ':host(.stil-ruhig) .mund{transform:scale(.8);transform-origin:50px 40px}',
+    ':host(.stil-ruhig) .zzz,:host(.stil-ruhig) .brille{display:none!important}',
+    ':host(.stil-ruhig) .knopf{transition:transform .6s cubic-bezier(.25,.8,.3,1)!important}',
+    ':host(.stil-ruhig) .springt .koerper,:host(.stil-ruhig) .huepft .koerper{animation:none!important}',
+    ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
+    ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
     '.beine-sitzen{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
     '.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
     '.knopf.sitzt{pointer-events:none}.knopf.sitzt .fig *{pointer-events:visiblePainted}',
@@ -203,6 +218,7 @@
   // ---------- Aufbau ----------
   var host = document.createElement('div');
   host.id = 'lh-lotse';
+  host.className = 'stil-' + (RUHIG ? 'ruhig' : 'verspielt');
   var root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
   root.innerHTML = '<style>' + CSS + '</style>' +
     '<button class="knopf" type="button" aria-haspopup="dialog" aria-label="Lotse öffnen – KI-Assistent von lechner+hayn">' +
@@ -252,10 +268,10 @@
 
     // Begrüßung beim ersten Besuch: einmal winken, Schild kurz zeigen. Neuer Bereich: kurz hüpfen.
     if (!lies('lh-lotse-gewunken')) {
-      setTimeout(function () { knopf.classList.add('winkt', 'zeigen'); schreib('lh-lotse-gewunken', '1');
+      setTimeout(function () { knopf.classList.add(RUHIG ? 'zeigen' : 'winkt', 'zeigen'); schreib('lh-lotse-gewunken', '1');
         setTimeout(function () { knopf.classList.remove('winkt', 'zeigen'); }, 4200); }, 2500);
     } else if (lies('lh-lotse-bereich') !== BEREICH) {
-      setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
+      if (!RUHIG) setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
     }
     schreib('lh-lotse-bereich', BEREICH);
 
@@ -271,7 +287,7 @@
       var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover')) return;
       var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
       var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;
-      var tx = r.right - r.width * 0.24, ty = r.top + (r.right - tx) * (r.height / r.width);
+      var tx = r.right - r.width * 0.29, ty = r.top + (r.right - tx) * (r.height / r.width);
       dx = Math.round(tx - hx); dy = Math.round(ty - hy + 1.5 * sk);
       knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
     };
@@ -303,7 +319,7 @@
 
     // Abends und am Wochenende schläft er (auf der Kante, wenn es eine gibt). Beim Aufspringen wacht er auf.
     function schlaf(an) { var f = knopf.querySelector('.fig'); if (f) f.classList.toggle('schlaeft', !!an); }
-    if (NACHT) {
+    if (NACHT && !RUHIG) {
       schlaf(true);
       knopf.addEventListener('mouseenter', function () { schlaf(false); });
       knopf.addEventListener('focus', function () { schlaf(false); });
@@ -327,7 +343,7 @@
     window.__lhLotseBlase = blaseZeigen; // nur für Tests
 
     // Augen folgen der Maus (nur mit Maus, nicht bei reduzierter Bewegung).
-    if (window.matchMedia && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!RUHIG && window.matchMedia && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
       var plan = false, mx = 0, my = 0;
       document.addEventListener('mousemove', function (e) {
         mx = e.clientX; my = e.clientY; if (plan || ruhigGestellt || knopf.querySelector('.fig.ruhe')) return; plan = true;
@@ -609,8 +625,8 @@
         .then(function (r) { return r.json(); })
         .then(function (d) {
           if (d && d.ok) { f.remove(); var dank = document.createElement('div'); dank.className = 'msg lotse'; dank.textContent = d.antwort;
-            zeige(null, miniZeile('freut', dank), false); zustand.angezeigt.push(['lotse', d.antwort]);
-            var kf = root.querySelector('.kopf-leiste .fig'); if (kf) { kf.classList.add('freut'); setTimeout(function () { kf.classList.remove('freut'); }, 2000); } zustand.positionen = []; sichern(); var t = root.querySelector('.verlauf .tabelle'); if (t) t.remove(); var zl = root.querySelector('.verlauf .zeige-liste'); if (zl) zl.remove(); }
+            zeige(null, miniZeile(RUHIG ? '' : 'freut', dank), false); zustand.angezeigt.push(['lotse', d.antwort]);
+            var kf = RUHIG ? null : root.querySelector('.kopf-leiste .fig'); if (kf) { kf.classList.add('freut'); setTimeout(function () { kf.classList.remove('freut'); }, 2000); } zustand.positionen = []; sichern(); var t = root.querySelector('.verlauf .tabelle'); if (t) t.remove(); var zl = root.querySelector('.verlauf .zeige-liste'); if (zl) zl.remove(); }
           else { fehler.textContent = (d && d.antwort) || 'Das hat nicht geklappt.'; knopf.disabled = false; knopf.textContent = 'Anfrage senden'; }
         })
         .catch(function () { fehler.textContent = 'Keine Verbindung. Bitte versuchen Sie es noch einmal.'; knopf.disabled = false; knopf.textContent = 'Anfrage senden'; });
