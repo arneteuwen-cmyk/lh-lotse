@@ -29,7 +29,7 @@
     var p = (location.pathname || '').toLowerCase(), k = document.body ? document.body.className : '';
     var m = p.match(/\/marke\/([a-z0-9-]+)/);
     if (m) return 'hersteller-' + m[1];
-    if (/single-product|woocommerce/.test(k) || /\/produkt\/|\/shop/.test(p)) return 'shop';
+    if (/(^|\s)(single-product|post-type-archive-product|tax-product_cat)(\s|$)/.test(k) || /\/produkt\/|\/shop\//.test(p)) return 'shop';
     var regeln = [[/akustik/, 'raumakustik'], [/licht|beleuchtung/, 'beleuchtung'], [/moebel-?design|individuelle/, 'moebeldesign'],
       [/nachhaltig/, 'nachhaltigkeit'], [/innenarchitektur|planung/, 'innenarchitektur'], [/new-?work/, 'newwork'], [/consulting/, 'consulting']];
     for (var i = 0; i < regeln.length; i++) if (regeln[i][0].test(p)) return regeln[i][1];
