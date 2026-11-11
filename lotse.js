@@ -81,7 +81,7 @@
       '<g class="koerper">' +
       '<g class="beine-stehen"><path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/></g>' +
       '<g class="beine-boden"><path d="M50 84c-5-1-10-3-14-6c-2 3-4 6-6 9M50 84c-7 1-14 2-21 2"/><path d="M26 87h5M24 86h-2"/></g>' +
-      '<g class="beine-sitzen"><path d="M50 72c-5 1-10 2-14 3c-1 4-1 9 0 13M50 72c-3 2-6 5-8 7c0 4 1 8 2 12"/><path d="M32 88h5M40 91h5"/></g>' +
+      '<g class="beine-sitzen"><path d="M50 72c-5 1-10 2-14 3c-1 4-1 9 0 13M50 72c-3 2-6 4-8 6c0 3 1 7 2 10"/><path d="M32 88h5M40 88h5"/></g>' +
       '<g class="oben">' +
       '<path d="M50 52v20"/>' +
       '<path class="arm-l" d="M50 58c-6 2-10 6-13 10"/><path class="arm-r" d="M50 58c6 2 10 6 13 10"/>' +
@@ -312,8 +312,9 @@
       var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
       var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
       var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;           // Hüfte im Stand
-      var tx = r.left + r.width * 0.25, ty = r.bottom - (tx - r.left) * (r.height / r.width); // Punkt auf der Kante
-      dx = Math.round(tx - hx); dy = Math.round(ty - hy + 1.5 * sk);
+      var fall = 17.3 * sk;                                                     // Hüfte bis Fußsohle im Sitzen
+      var ty = r.bottom - fall, tx = r.left + fall * (r.width / r.height);       // Hüfte auf der Kante, Füße auf der Unterkante
+      dx = Math.round(tx - hx); dy = Math.round(ty - hy);
       knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
     };
     function aufstehen() { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; }

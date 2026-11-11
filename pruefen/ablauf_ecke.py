@@ -31,7 +31,7 @@ def lage(s):
 
 def am_boden(l):
     if "sitzt" in l["klasse"]:
-        return l["fussUnten"] <= l["hoehe"] + 1   # sitzt auf dem Dreieck, Füße im Bild
+        return abs(l["fussUnten"] - l["hoehe"]) <= 3   # sitzt auf dem Dreieck, Füße auf der Unterkante
     return abs(l["fussUnten"] - l["hoehe"]) <= 5 and l["rechts"] <= l["eckeLinks"] + 1
 
 
