@@ -113,7 +113,7 @@
     '.fig .glanz{fill:#fff;stroke:none}',
     '.fig .fl{fill:' + EINST.rot + '}',
     '.fig .zeichnen{opacity:0;stroke-dasharray:60;stroke-dashoffset:60}',
-    '.knopf{position:fixed;right:18px;bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
+    '.knopf{position:fixed;right:var(--lotse-rechts,18px);bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
     '.knopf .fig{filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 1px 3px rgba(0,0,0,.25))}',
     ':host(.stil-ruhig) .knopf .fig{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 1px 2px rgba(0,0,0,.18))}',
     '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:4px;border-radius:12px}',
@@ -137,9 +137,9 @@
     '.ap{display:none}.zeigt .arm-r,.haelt .arm-r,.freut .arm-r,.freut .arm-l{display:none}.zeigt .ap-z,.haelt .ap-h,.freut .ap-fr,.freut .ap-fl{display:inline}',
     '.mini-zeile{display:flex;gap:8px;align-items:flex-end;align-self:stretch}.mini-zeile .mini-fig{width:46px;height:52px;flex:none}.mini-zeile .msg{max-width:none;flex:1}',
     '.karte{flex:1;border:1.5px solid #1a1a1a;border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}.karte strong{display:block;margin-bottom:4px}.karte a{color:#1a1a1a}',
-    '.blase{position:fixed;right:18px;bottom:calc(var(--lotse-unten,18px) + 118px);max-width:min(280px,calc(100vw - 40px));background:#1a1a1a;color:#fff;font-size:14px;line-height:1.35;padding:10px 34px 10px 14px;border-radius:16px 16px 4px 16px;z-index:2147483000;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}',
+    '.blase{position:fixed;right:max(10px,calc(var(--lotse-rechts,18px) - 120px));bottom:calc(var(--lotse-unten,18px) + 124px);max-width:min(280px,calc(100vw - 40px));background:#1a1a1a;color:#fff;font-size:14px;line-height:1.35;padding:10px 34px 10px 14px;border-radius:16px 16px 4px 16px;z-index:2147483000;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}',
     '.blase[hidden]{display:none}.blase .weg-x{position:absolute;right:4px;top:4px;border:0;background:none;color:#fff;font-size:18px;cursor:pointer;width:28px;height:28px}',
-    '@media (max-width:600px){.blase{right:10px;bottom:calc(var(--lotse-unten,8px) + 92px)}}',
+    '@media (max-width:600px){.blase{right:10px;bottom:calc(var(--lotse-unten,8px) + 96px)}}',
     '@media (prefers-reduced-motion:no-preference){.zzz .z1{animation:zz 2.4s ease-in-out infinite}.zzz .z2{animation:zz 2.4s ease-in-out .5s infinite}.zzz .z3{animation:zz 2.4s ease-in-out 1s infinite}.freut .koerper{animation:luftsprung .9s cubic-bezier(.3,1.6,.5,1) 2}.blase{animation:blase-rein .35s ease-out}}',
     '@keyframes zz{0%,100%{opacity:0;transform:translateY(3px)}40%,70%{opacity:1;transform:none}}',
     '@keyframes luftsprung{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-4deg)}}',
@@ -153,8 +153,13 @@
     ':host(.stil-ruhig) .wange{display:none}',
     ':host(.stil-ruhig) .mund{transform:scale(.8);transform-origin:50px 40px}',
     ':host(.stil-ruhig) .zzz,:host(.stil-ruhig) .brille{display:none!important}',
-    ':host(.stil-ruhig) .knopf{transition:transform .6s cubic-bezier(.25,.8,.3,1)!important}',
-    ':host(.stil-ruhig) .springt .koerper,:host(.stil-ruhig) .huepft .koerper{animation:none!important}',
+    ':host(.stil-ruhig) .knopf{transition:transform .9s cubic-bezier(.4,0,.2,1)!important}',
+    ':host(.stil-ruhig) .huepft .koerper{animation:none!important}',
+    '@media (prefers-reduced-motion:no-preference){:host(.stil-ruhig) .springt .koerper{animation:huepfen-sanft .55s cubic-bezier(.3,.7,.4,1) 1!important}',
+    ' .kommt{animation:auftritt 1.2s cubic-bezier(.22,.8,.3,1) both}}',
+    '.sofort,.sofort *{transition:none!important}',
+    '@keyframes huepfen-sanft{0%{transform:translateY(0)}40%{transform:translateY(-7px)}100%{transform:translateY(0)}}',
+    '@keyframes auftritt{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}',
     ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
     ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
     '.beine-sitzen{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
@@ -211,7 +216,7 @@
     '.datei-chip{font-size:12px;color:#444;padding:0 12px 6px}',
     '.fuss-ki{font-size:11px;color:#777;text-align:center;padding:0 10px 8px}',
     '.nur-vorleser{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
-    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{right:8px;bottom:var(--lotse-unten,8px);width:76px;height:84px}.knopf .schild{display:none}}',
+    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{right:var(--lotse-rechts,8px);bottom:var(--lotse-unten,8px);width:76px;height:84px}.knopf .schild{display:none}}',
     '@media print{.knopf,.fenster{display:none!important}}'
   ].join('\n');
 
@@ -240,13 +245,21 @@
     '</form><div class="fuss-ki">Antworten erstellt eine KI und können Fehler enthalten. Verbindlich ist nur das Angebot unseres Teams.</div></section>';
 
   // Feste Elemente der Website unten rechts (z. B. die rote Kontakt-Ecke .cta-fixed) nicht verdecken: Lotse darüber setzen.
+  // Gibt es die rote Kontakt-Ecke (.cta-fixed) unten rechts, steht der Lotse auf dem Boden links daneben – die Füße auf der
+  // Unterkante, nie im Dreieck. Ohne Ecke steht er wie gewohnt unten rechts.
   function platz() {
-    var unten = 0, kandidaten = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
+    var ecke = null, kandidaten = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
     for (var i = 0; i < kandidaten.length; i++) {
       var r = kandidaten[i].getBoundingClientRect();
-      if (r.width > 0 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) unten = Math.max(unten, innerHeight - r.top);
+      if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) ecke = r;
     }
-    host.style.setProperty('--lotse-unten', unten ? Math.round(unten + 8) + 'px' : '');
+    var k = root.querySelector('.knopf');
+    if (!ecke || !k) { host.style.removeProperty('--lotse-rechts'); host.style.removeProperty('--lotse-unten'); return; }
+    var w = k.offsetWidth || 104, h = k.offsetHeight || 112, sk = Math.min(w, h) / 100, oy = (h - 100 * sk) / 2;
+    var fuss = oy + 88.5 * sk;                                   // Unterkante der Füße im Knopf
+    host.style.setProperty('--lotse-rechts', Math.round(innerWidth - ecke.left + 2 - (w - 69 * sk)) + 'px'); // rechte Hand/Fuß knapp vor dem Dreieck
+    host.style.setProperty('--lotse-unten', Math.round(innerHeight - ecke.bottom - (h - fuss)) + 'px');
+    if (window.__lhLotseNeu) window.__lhLotseNeu();
   }
   function start() { document.body.appendChild(host); einrichten(); platz(); setTimeout(platz, 1500); addEventListener('resize', platz); }
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
@@ -266,11 +279,18 @@
     var knopf = $('.knopf'), fenster = $('.fenster'), zu = $('.zu'), form = $('.eingabe'), feld = $('textarea'),
       dateiFeld = $('.datei'), anhangKnopf = $('.anhang');
 
-    // Begrüßung beim ersten Besuch: einmal winken, Schild kurz zeigen. Neuer Bereich: kurz hüpfen.
-    if (!lies('lh-lotse-gewunken')) {
-      setTimeout(function () { knopf.classList.add(RUHIG ? 'zeigen' : 'winkt', 'zeigen'); schreib('lh-lotse-gewunken', '1');
-        setTimeout(function () { knopf.classList.remove('winkt', 'zeigen'); }, 4200); }, 2500);
-    } else if (lies('lh-lotse-bereich') !== BEREICH) {
+    // Erster Besuch (Arne 11.11.2026): er kommt elegant ins Bild, zeigt kurz sein Schild und setzt sich dann gemütlich auf die Kante.
+    // Danach sitzt er auf jeder Seite gleich – keine Wiederholung.
+    var ersterBesuch = !lies('lh-lotse-gewunken');
+    if (ersterBesuch) {
+      knopf.classList.add('kommt');
+      setTimeout(function () { knopf.classList.remove('kommt'); knopf.classList.add(RUHIG ? 'zeigen' : 'winkt', 'zeigen'); schreib('lh-lotse-gewunken', '1'); }, 1300);
+      setTimeout(function () { knopf.classList.remove('winkt', 'zeigen'); hinsetzen(); }, 4300);
+    } else {
+      knopf.classList.add('sofort');
+      setTimeout(function () { hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); }, 60);
+    }
+    if (!ersterBesuch && lies('lh-lotse-bereich') !== BEREICH) {
       if (!RUHIG) setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
     }
     schreib('lh-lotse-bereich', BEREICH);
@@ -284,7 +304,7 @@
       return null;
     }
     var hinsetzen = function () {
-      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover')) return;
+      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('kommt')) return;
       var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
       var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;
       var tx = r.right - r.width * 0.29, ty = r.top + (r.right - tx) * (r.height / r.width);
@@ -304,7 +324,7 @@
       clearTimeout(sitzUhr); clearTimeout(ruheUhr);
       if (ruhigGestellt) { ruhe(true); return; }
       ruhe(false);
-      sitzUhr = setTimeout(function () { hinsetzen(); }, 8000);
+      sitzUhr = setTimeout(function () { hinsetzen(); }, 6000);
       ruheUhr = setTimeout(function () { ruhe(true); }, 60000);
     }
     var ruhigKnopf = $('.ruhig');
@@ -314,6 +334,7 @@
     $('.mensch').addEventListener('click', function () { formularZeigen('team'); });
     knopf.addEventListener('mouseenter', aufspringen); knopf.addEventListener('focus', aufspringen);
     knopf.addEventListener('touchstart', aufspringen, { passive: true });
+    window.__lhLotseNeu = function () { if (knopf.classList.contains('sitzt')) { knopf.classList.add('sofort'); knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; hinsetzen(); requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); } };
     addEventListener('resize', function () { if (knopf.classList.contains('sitzt')) { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; setTimeout(function () { hinsetzen(); }, 50); } });
     planen();
 
@@ -392,8 +413,9 @@
     return el;
   }
   function begruessen() {
-    if (NACHT) zeige('hinweis', 'Unser Team ist gerade nicht im Haus und meldet sich am nächsten Werktag. Ich bin trotzdem für Sie da.');
-    zeige('lotse', (NACHT && JETZT.stunde >= 18 ? 'Guten Abend!' : 'Guten Tag!') + ' Ich bin der Lotse, ein KI-Assistent von lechner+hayn. Ich beantworte Fragen zu unseren Leistungen und Produkten, nehme Produkt- und Stücklisten auf und gebe Ihre Anfrage für ein individuelles Angebot an unser Team weiter.');
+    var wochenende = /^(Sa|So)/.test(JETZT.tag);
+    zeige('lotse', 'Hallo, ich bin der Lotse, der KI-Assistent von lechner+hayn. Fragen Sie mich alles rund um Ihre Einrichtung – oder fügen Sie einfach eine Stückliste oder Produkte ein. ' +
+      (wochenende ? 'Ein konkretes Angebot oder eine Rückmeldung bekommen Sie am nächsten Werktag.' : 'Spätestens nach 24 Stunden bekommen Sie ein konkretes Angebot oder eine Rückmeldung.'));
     tippsZeigen();
   }
   function tippsZeigen() {

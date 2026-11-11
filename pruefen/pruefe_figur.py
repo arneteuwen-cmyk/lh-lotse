@@ -59,7 +59,7 @@ with sync_playwright() as p:
     ok("schlaeft" not in k2, "Nacht: wacht bei Maus auf")
     s.locator("#lh-lotse >> css=.knopf").click(); s.wait_for_timeout(300)
     v = s.evaluate(f"{J}.querySelector('.verlauf').innerText")
-    ok("nächsten Werktag" in v, "Nacht: Hinweis Team am nächsten Werktag")
+    ok("24 Stunden" in v or "Werktag" in v, "Nacht: Begrüßung mit Zusage")
     c.close()
     # 1b Nacht in der ruhigen Fassung: kein Schlafen, nur der Hinweis im Fenster
     c, s = seite(b, "?lotse-zeit=nacht&lotse-saison=keine")
@@ -67,7 +67,7 @@ with sync_playwright() as p:
     k = s.evaluate(f"(()=>{{const r={J}; return {{fig:r.querySelector('.knopf .fig').getAttribute('class'), knopf:r.querySelector('.knopf').className}}}})()")
     ok("schlaeft" not in k["fig"] and "sitzt" in k["knopf"], f"ruhig Nacht: sitzt wach {k}")
     s.evaluate(f"{J}.querySelector('.knopf').click()"); s.wait_for_timeout(300)
-    ok("nächsten Werktag" in s.evaluate(f"{J}.querySelector('.verlauf').innerText"), "ruhig Nacht: Hinweis Team am nächsten Werktag")
+    ok(any(x in s.evaluate(f"{J}.querySelector('.verlauf').innerText") for x in ("24 Stunden", "Werktag")), "ruhig Nacht: Begrüßung mit Zusage")
     c.close()
     # 2 Dezember und Sommer
     for saison, sel in [("dezember", ".xmas"), ("sommer", ".brille")]:
