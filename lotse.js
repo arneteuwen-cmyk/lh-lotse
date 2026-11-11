@@ -158,13 +158,13 @@
     ':host(.stil-ruhig) .huepft .koerper{animation:none!important}',
     '@media (prefers-reduced-motion:no-preference){:host(.stil-ruhig) .springt .koerper{animation:huepfen-sanft .55s cubic-bezier(.3,.7,.4,1) 1!important}',
     ' .kommt{animation:auftritt 1.2s cubic-bezier(.22,.8,.3,1) both}}',
-    '.sofort,.sofort *{transition:none!important}',
+    '.sofort,.sofort *,:host(.stil-ruhig) .knopf.sofort,:host(.stil-ruhig) .knopf.sofort *{transition:none!important}',
     '@keyframes huepfen-sanft{0%{transform:translateY(0)}40%{transform:translateY(-7px)}100%{transform:translateY(0)}}',
     '@keyframes auftritt{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}',
     ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
     ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
     '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
-    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
+    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(var(--lehne,10deg));transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(60deg);transform-origin:50px 58px}.sitzt .arm-l{display:none}.sitzt .ap-sk{display:inline}',
     '.gruesst .arm-r{display:none}.gruesst .ap-h{display:inline;transform-origin:50px 58px}',
     '@media (prefers-reduced-motion:no-preference){.gruesst .ap-h{animation:gruss .7s ease-in-out 2}}',
     '@keyframes gruss{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}',
@@ -308,12 +308,14 @@
       for (var i = 0; i < k.length; i++) { var r = k[i].getBoundingClientRect(); if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) return r; }
       return null;
     }
+    var EINRUECKEN = +(QS.match(/lotse-ein=([0-9.]+)/) || [])[1] || 4;   // wie weit das Gesäß im Dreieck liegt (Testparameter)
     var hinsetzen = function () {
       var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
-      var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
-      var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;           // Hüfte im Stand
+      // Standplatz aus dem Layout (offsetLeft/-Top), unabhängig von laufenden Bewegungen und Verschiebungen
+      var w = knopf.offsetWidth, h = knopf.offsetHeight, sk = Math.min(w, h) / 100, oy = (h - 100 * sk) / 2;
+      var hx = knopf.offsetLeft + 50 * sk, hy = knopf.offsetTop + oy + 72 * sk;  // Hüfte im Stand
       var fall = 17.3 * sk;                                                     // Hüfte bis Fußsohle im Sitzen
-      var ty = r.bottom - fall, tx = r.left + fall * (r.width / r.height);       // Hüfte auf der Kante, Füße auf der Unterkante
+      var ty = r.bottom - fall, tx = r.left + fall * (r.width / r.height) + EINRUECKEN * sk; // Hüfte im Dreieck, Füße auf der Unterkante
       dx = Math.round(tx - hx); dy = Math.round(ty - hy);
       knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
     };
