@@ -26,14 +26,16 @@ def lage(s):
       const t=[...document.querySelectorAll('.cta-fixed *')].filter(x=>/KONTAKT/i.test(x.textContent)&&!x.children.length).map(x=>x.getBoundingClientRect())[0];
       const f=k.querySelector('.fig').getBoundingClientRect(); const ueber= t ? !(f.right<t.left||f.left>t.right||f.bottom<t.top||f.top>t.bottom) : null;
       const fig=k.querySelector('.fig').getBoundingClientRect();
-      const hu=k.querySelector('.beine-sitzen path').getBoundingClientRect();
-      return {{klasse:k.className, hueftX:Math.round(hu.right), kanteX:Math.round(e.left + (innerHeight - hu.top)), textUeberdeckt:ueber, text:t?[Math.round(t.left),Math.round(t.top),Math.round(t.right),Math.round(t.bottom)]:null, fussUnten:Math.round(b.bottom), rechts:Math.round(Math.max(b.right, k.querySelector('.oben').getBoundingClientRect().right)), eckeLinks:Math.round(e.left), hoehe:innerHeight}}}})()""")
+      const fb=k.querySelector('.fuss-boden').getBoundingClientRect(), fk=k.querySelector('.fuss-kante').getBoundingClientRect();
+      const ky=x=>e.bottom-(x-e.left)*(e.height/e.width);
+      return {{klasse:k.className, bodenfussLinks:Math.round(e.left-fb.right), bodenfussHoehe:+(innerHeight-fb.bottom).toFixed(1), kantenfuss:+(ky((fk.left+fk.right)/2)-(fk.top+fk.bottom)/2).toFixed(1), textUeberdeckt:ueber, text:t?[Math.round(t.left),Math.round(t.top),Math.round(t.right),Math.round(t.bottom)]:null, fussUnten:Math.round(b.bottom), rechts:Math.round(Math.max(b.right, k.querySelector('.oben').getBoundingClientRect().right)), eckeLinks:Math.round(e.left), hoehe:innerHeight}}}})()""")
 
 
 def am_boden(l):
     if "sitzt" in l["klasse"]:
         # sitzt auf dem Dreieck (Hüfte rechts der Kante, also auf der roten Fläche), Füße auf der Unterkante
-        return abs(l["fussUnten"] - l["hoehe"]) <= 3 and l["hueftX"] >= l["kanteX"]
+        # ein Fuß auf der Unterkante links neben dem Dreieck, ein Fuß auf der schrägen Fläche (je höchstens 2 px daneben)
+        return 0 <= l["bodenfussLinks"] <= 8 and abs(l["bodenfussHoehe"]) <= 2 and abs(l["kantenfuss"]) <= 2
     return abs(l["fussUnten"] - l["hoehe"]) <= 5 and l["rechts"] <= l["eckeLinks"] + 1
 
 

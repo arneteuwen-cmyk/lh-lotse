@@ -81,7 +81,7 @@
       '<g class="koerper">' +
       '<g class="beine-stehen"><path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/></g>' +
       '<g class="beine-boden"><path d="M50 84c-5-1-10-3-14-6c-2 3-4 6-6 9M50 84c-7 1-14 2-21 2"/><path d="M26 87h5M24 86h-2"/></g>' +
-      '<g class="beine-sitzen"><path d="M50 72c-5 1-10 2-14 3c-1 4-1 9 0 13M50 72c-3 2-6 4-8 6c0 3 1 7 2 10"/><path d="M32 88h5M40 88h5"/></g>' +
+      '<g class="beine-sitzen"><path class="bein-boden" d="M50 72L38 80L29 90"/><path class="fuss-boden" d="M24 90h6"/><path class="bein-kante" d="M50 72L45 64L40 82"/><path class="fuss-kante" d="M37 85l6-6"/></g>' +
       '<g class="oben">' +
       '<path d="M50 52v20"/>' +
       '<path class="arm-l" d="M50 58c-6 2-10 6-13 10"/><path class="arm-r" d="M50 58c6 2 10 6 13 10"/>' +
@@ -164,7 +164,7 @@
     ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
     ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
     '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
-    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(var(--lehne,10deg));transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(60deg);transform-origin:50px 58px}.sitzt .arm-l{display:none}.sitzt .ap-sk{display:inline}',
+    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(var(--lehne,6deg));transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(60deg);transform-origin:50px 58px}.sitzt .arm-l{display:none}.sitzt .ap-sk{display:inline}',
     '.gruesst .arm-r{display:none}.gruesst .ap-h{display:inline;transform-origin:50px 58px}',
     '@media (prefers-reduced-motion:no-preference){.gruesst .ap-h{animation:gruss .7s ease-in-out 2}}',
     '@keyframes gruss{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}',
@@ -308,14 +308,15 @@
       for (var i = 0; i < k.length; i++) { var r = k[i].getBoundingClientRect(); if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) return r; }
       return null;
     }
-    var EINRUECKEN = +(QS.match(/lotse-ein=([0-9.]+)/) || [])[1] || 4;   // wie weit das Gesäß im Dreieck liegt (Testparameter)
-    var hinsetzen = function () {
+        var hinsetzen = function () {
       var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
       // Standplatz aus dem Layout (offsetLeft/-Top), unabhängig von laufenden Bewegungen und Verschiebungen
       var w = knopf.offsetWidth, h = knopf.offsetHeight, sk = Math.min(w, h) / 100, oy = (h - 100 * sk) / 2;
       var hx = knopf.offsetLeft + 50 * sk, hy = knopf.offsetTop + oy + 72 * sk;  // Hüfte im Stand
-      var fall = 17.3 * sk;                                                     // Hüfte bis Fußsohle im Sitzen
-      var ty = r.bottom - fall, tx = r.left + fall * (r.width / r.height) + EINRUECKEN * sk; // Hüfte im Dreieck, Füße auf der Unterkante
+      // Hüfte liegt auf der Kante, 13 Einheiten über dem Boden: dann steht Fuß A (y 85) auf der Unterkante links neben
+      // der Ecke und Fuß B auf der schrägen Fläche. Breite Ecke/Höhe = Steigung (45° bei der Kontakt-Ecke).
+      var hoehe = 18 * sk, fall = 16.6 * sk;
+      var ty = r.bottom - fall, tx = r.left + hoehe * (r.width / r.height);
       dx = Math.round(tx - hx); dy = Math.round(ty - hy);
       knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
     };
