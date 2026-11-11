@@ -22,12 +22,16 @@ def ok(bed, text):
 
 def lage(s):
     return s.evaluate(f"""(()=>{{const k={J}.querySelector('.knopf'), e=document.querySelector('.cta-fixed').getBoundingClientRect();
-      const sitzt=k.classList.contains('sitzt'); const b=k.querySelector(sitzt?'.beine-boden':'.beine-stehen').getBoundingClientRect();
+      const sitzt=k.classList.contains('sitzt'); const b=k.querySelector(sitzt?'.beine-sitzen':'.beine-stehen').getBoundingClientRect();
+      const t=[...document.querySelectorAll('.cta-fixed *')].filter(x=>/KONTAKT/i.test(x.textContent)&&!x.children.length).map(x=>x.getBoundingClientRect())[0];
+      const f=k.querySelector('.fig').getBoundingClientRect(); const ueber= t ? !(f.right<t.left||f.left>t.right||f.bottom<t.top||f.top>t.bottom) : null;
       const fig=k.querySelector('.fig').getBoundingClientRect();
-      return {{klasse:k.className, fussUnten:Math.round(b.bottom), rechts:Math.round(Math.max(b.right, k.querySelector('.oben').getBoundingClientRect().right)), eckeLinks:Math.round(e.left), hoehe:innerHeight}}}})()""")
+      return {{klasse:k.className, textUeberdeckt:ueber, text:t?[Math.round(t.left),Math.round(t.top),Math.round(t.right),Math.round(t.bottom)]:null, fussUnten:Math.round(b.bottom), rechts:Math.round(Math.max(b.right, k.querySelector('.oben').getBoundingClientRect().right)), eckeLinks:Math.round(e.left), hoehe:innerHeight}}}})()""")
 
 
 def am_boden(l):
+    if "sitzt" in l["klasse"]:
+        return l["fussUnten"] <= l["hoehe"] + 1   # sitzt auf dem Dreieck, Füße im Bild
     return abs(l["fussUnten"] - l["hoehe"]) <= 5 and l["rechts"] <= l["eckeLinks"] + 1
 
 
@@ -47,7 +51,7 @@ with sync_playwright() as p:
         s.goto(B, wait_until="domcontentloaded")
         s.wait_for_timeout(300)
         l = lage(s)
-        ok("sitzt" in l["klasse"] and am_boden(l), f"{n}: sitzt beim Start am Boden neben dem Dreieck {l}")
+        ok("sitzt" in l["klasse"] and am_boden(l), f"{n}: sitzt beim Start auf dem Dreieck {l}")
         if not mobil:
             foto(s, n + "1", "Start: sitzt", vp)
         s.wait_for_timeout(2700)

@@ -163,9 +163,8 @@
     '@keyframes auftritt{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}',
     ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
     ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
-    '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-boden{display:inline}',
-    '.sitzt .arm-r,.sitzt .arm-l{display:none}.sitzt .ap-sk,.sitzt .ap-sb{display:inline}',
-    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:translate(0,12px) rotate(-3deg);transform-origin:50px 72px}',
+    '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
+    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
     '.gruesst .arm-r{display:none}.gruesst .ap-h{display:inline;transform-origin:50px 58px}',
     '@media (prefers-reduced-motion:no-preference){.gruesst .ap-h{animation:gruss .7s ease-in-out 2}}',
     '@keyframes gruss{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}',
@@ -287,14 +286,14 @@
     // Start (Arne 11.11.2026): Er sitzt brav auf dem Boden neben der Kontakt-Ecke. Beim Öffnen der Seite – einmal je Besuch –
     // steht er auf, grüßt kurz und setzt sich wieder. Danach sitzt er leicht und elegant im Hintergrund.
     var ersterBesuch = !lies('lh-lotse-gewunken');
-    knopf.classList.add('sofort', 'sitzt');
-    requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); });
+    knopf.classList.add('sofort');
+    setTimeout(function () { hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); }, 0);
     if (!lies('lh-lotse-gegruesst', true)) {
       schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
       var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      setTimeout(function () { if (!still) knopf.classList.remove('sitzt'); }, 1800);
+      setTimeout(function () { if (!still) aufstehen(); }, 1800);
       setTimeout(function () { knopf.classList.add('zeigen'); if (!still) knopf.classList.add(RUHIG ? 'gruesst' : 'winkt'); }, 2600);
-      setTimeout(function () { knopf.classList.remove('gruesst', 'winkt', 'zeigen'); if (!knopf.matches(':hover')) knopf.classList.add('sitzt'); }, 5200);
+      setTimeout(function () { knopf.classList.remove('gruesst', 'winkt', 'zeigen'); hinsetzen(); }, 5200);
     }
     if (!ersterBesuch && lies('lh-lotse-bereich') !== BEREICH) {
       if (!RUHIG) setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
@@ -310,12 +309,17 @@
       return null;
     }
     var hinsetzen = function () {
-      if (knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
-      knopf.classList.add('sitzt');
+      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
+      var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
+      var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;           // Hüfte im Stand
+      var tx = r.left + r.width * 0.25, ty = r.bottom - (tx - r.left) * (r.height / r.width); // Punkt auf der Kante
+      dx = Math.round(tx - hx); dy = Math.round(ty - hy + 1.5 * sk);
+      knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
     };
+    function aufstehen() { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; }
     function aufspringen() {
       if (knopf.classList.contains('sitzt')) {
-        knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = '';
+        aufstehen();
         knopf.classList.add('springt'); setTimeout(function () { knopf.classList.remove('springt'); }, 650);
       }
       planen();
@@ -336,7 +340,8 @@
     $('.mensch').addEventListener('click', function () { formularZeigen('team'); });
     knopf.addEventListener('mouseenter', aufspringen); knopf.addEventListener('focus', aufspringen);
     knopf.addEventListener('touchstart', aufspringen, { passive: true });
-    window.__lhLotseNeu = function () {};
+    window.__lhLotseNeu = function () { if (knopf.classList.contains('sitzt')) { knopf.classList.add('sofort'); aufstehen(); hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); } };
+    addEventListener('resize', function () { window.__lhLotseNeu(); });
     planen();
 
     // Abends und am Wochenende schläft er (auf der Kante, wenn es eine gibt). Beim Aufspringen wacht er auf.
