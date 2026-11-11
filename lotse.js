@@ -80,11 +80,12 @@
     return '<svg class="fig' + (klein ? ' klein' : '') + (SAISON ? ' ' + SAISON : '') + (merkmal === 'leuchte' ? ' ohne-xmas' : '') + '" viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
       '<g class="koerper">' +
       '<g class="beine-stehen"><path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/></g>' +
+      '<g class="beine-boden"><path d="M50 84c-5-1-10-3-14-6c-2 3-4 6-6 9M50 84c-7 1-14 2-21 2"/><path d="M26 87h5M24 86h-2"/></g>' +
       '<g class="beine-sitzen"><path d="M50 72c-5 1-10 2-14 3c-1 4-1 9 0 13M50 72c-3 2-6 5-8 7c0 4 1 8 2 12"/><path d="M32 88h5M40 91h5"/></g>' +
       '<g class="oben">' +
       '<path d="M50 52v20"/>' +
       '<path class="arm-l" d="M50 58c-6 2-10 6-13 10"/><path class="arm-r" d="M50 58c6 2 10 6 13 10"/>' +
-      '<path class="ap ap-z" d="M50 58c6-1 11-1 17-1"/><path class="ap ap-h" d="M50 58c7-2 13-6 17-12"/><path class="ap ap-fr" d="M50 58c7-2 14-6 19-13"/><path class="ap ap-fl" d="M50 58c-7-2-14-6-19-13"/>' +
+      '<path class="ap ap-sk" d="M50 58c-4 3-8 5-10 8"/><path class="ap ap-sb" d="M50 58c4 5 7 10 8 16"/><path class="ap ap-z" d="M50 58c6-1 11-1 17-1"/><path class="ap ap-h" d="M50 58c7-2 13-6 17-12"/><path class="ap ap-fr" d="M50 58c7-2 14-6 19-13"/><path class="ap ap-fl" d="M50 58c-7-2-14-6-19-13"/>' +
       '<circle class="kopf" cx="50" cy="32" r="19"/>' +
       '<circle class="wange" cx="38.5" cy="38" r="3.2"/><circle class="wange" cx="61.5" cy="38" r="3.2"/>' +
       '<g class="blick"><g class="augen"><ellipse cx="43" cy="31" rx="2.3" ry="2.8" class="p"/><ellipse cx="57" cy="31" rx="2.3" ry="2.8" class="p"/>' +
@@ -162,8 +163,12 @@
     '@keyframes auftritt{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}',
     ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
     ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
-    '.beine-sitzen{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
-    '.sitzt .oben{transform:rotate(7deg);transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(38deg);transform-origin:50px 58px}',
+    '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-boden{display:inline}',
+    '.sitzt .arm-r,.sitzt .arm-l{display:none}.sitzt .ap-sk,.sitzt .ap-sb{display:inline}',
+    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:translate(0,12px) rotate(-3deg);transform-origin:50px 72px}',
+    '.gruesst .arm-r{display:none}.gruesst .ap-h{display:inline;transform-origin:50px 58px}',
+    '@media (prefers-reduced-motion:no-preference){.gruesst .ap-h{animation:gruss .7s ease-in-out 2}}',
+    '@keyframes gruss{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}',
     '.knopf.sitzt{pointer-events:none}.knopf.sitzt .fig *{pointer-events:visiblePainted}',
     '@media (prefers-reduced-motion:no-preference){.knopf{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.springt .koerper{animation:huepfen .6s ease-out 1}}',
     '@keyframes atmen{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}',
@@ -279,16 +284,17 @@
     var knopf = $('.knopf'), fenster = $('.fenster'), zu = $('.zu'), form = $('.eingabe'), feld = $('textarea'),
       dateiFeld = $('.datei'), anhangKnopf = $('.anhang');
 
-    // Erster Besuch (Arne 11.11.2026): er kommt elegant ins Bild, zeigt kurz sein Schild und setzt sich dann gemütlich auf die Kante.
-    // Danach sitzt er auf jeder Seite gleich – keine Wiederholung.
+    // Start (Arne 11.11.2026): Er sitzt brav auf dem Boden neben der Kontakt-Ecke. Beim Öffnen der Seite – einmal je Besuch –
+    // steht er auf, grüßt kurz und setzt sich wieder. Danach sitzt er leicht und elegant im Hintergrund.
     var ersterBesuch = !lies('lh-lotse-gewunken');
-    if (ersterBesuch) {
-      knopf.classList.add('kommt');
-      setTimeout(function () { knopf.classList.remove('kommt'); knopf.classList.add(RUHIG ? 'zeigen' : 'winkt', 'zeigen'); schreib('lh-lotse-gewunken', '1'); }, 1300);
-      setTimeout(function () { knopf.classList.remove('winkt', 'zeigen'); hinsetzen(); }, 4300);
-    } else {
-      knopf.classList.add('sofort');
-      setTimeout(function () { hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); }, 60);
+    knopf.classList.add('sofort', 'sitzt');
+    requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); });
+    if (!lies('lh-lotse-gegruesst', true)) {
+      schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
+      var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(function () { if (!still) knopf.classList.remove('sitzt'); }, 1800);
+      setTimeout(function () { knopf.classList.add('zeigen'); if (!still) knopf.classList.add(RUHIG ? 'gruesst' : 'winkt'); }, 2600);
+      setTimeout(function () { knopf.classList.remove('gruesst', 'winkt', 'zeigen'); if (!knopf.matches(':hover')) knopf.classList.add('sitzt'); }, 5200);
     }
     if (!ersterBesuch && lies('lh-lotse-bereich') !== BEREICH) {
       if (!RUHIG) setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
@@ -304,12 +310,8 @@
       return null;
     }
     var hinsetzen = function () {
-      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('kommt')) return;
-      var k = knopf.getBoundingClientRect(), sk = Math.min(k.width, k.height) / 100, oy = (k.height - 100 * sk) / 2;
-      var hx = k.left - dx + 50 * sk, hy = k.top - dy + oy + 72 * sk;
-      var tx = r.right - r.width * 0.29, ty = r.top + (r.right - tx) * (r.height / r.width);
-      dx = Math.round(tx - hx); dy = Math.round(ty - hy + 1.5 * sk);
-      knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
+      if (knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
+      knopf.classList.add('sitzt');
     };
     function aufspringen() {
       if (knopf.classList.contains('sitzt')) {
@@ -334,8 +336,7 @@
     $('.mensch').addEventListener('click', function () { formularZeigen('team'); });
     knopf.addEventListener('mouseenter', aufspringen); knopf.addEventListener('focus', aufspringen);
     knopf.addEventListener('touchstart', aufspringen, { passive: true });
-    window.__lhLotseNeu = function () { if (knopf.classList.contains('sitzt')) { knopf.classList.add('sofort'); knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; hinsetzen(); requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); } };
-    addEventListener('resize', function () { if (knopf.classList.contains('sitzt')) { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; setTimeout(function () { hinsetzen(); }, 50); } });
+    window.__lhLotseNeu = function () {};
     planen();
 
     // Abends und am Wochenende schläft er (auf der Kante, wenn es eine gibt). Beim Aufspringen wacht er auf.
