@@ -14,6 +14,8 @@
     rot: '#EB1E26',
     xlsx: 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
   };
+  var BEWEGUNG = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var NAME = 'KI-Lotse';   // steht an einer Stelle, damit ein neuer Name nur hier geändert wird
   var skript = document.currentScript;
 
   // ---------- Speicher (darf fehlen) ----------
@@ -273,7 +275,11 @@
     '.datei-chip{font-size:12px;color:#444;padding:0 12px 6px}',
     '.fuss-ki{font-size:11px;color:#777;text-align:center;padding:0 10px 8px}',
     // Glasfenster (Arne 13.11.2026): Tippt man den Kiesel an, wächst sein Glas zum Fenster – dunkles, leicht spiegelndes Glas.
-    '.fenster{color-scheme:dark;background:linear-gradient(160deg,rgba(58,58,66,.9) 0%,rgba(22,22,26,.93) 45%,rgba(8,8,10,.96) 100%);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);color:#f5f5f7;border-radius:26px;box-shadow:0 30px 70px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.38)}',
+    '.fenster{color-scheme:dark;background:linear-gradient(160deg,rgba(58,58,66,.9) 0%,rgba(22,22,26,.93) 45%,rgba(8,8,10,.96) 100%);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);color:#f5f5f7;border-radius:26px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.38);font-weight:400;-webkit-font-smoothing:antialiased}',
+    // Der Schatten liegt als eigene Fläche hinter dem Glas, damit er beim Wachsen weich nachkommen kann.
+    '.schatten{position:fixed;right:18px;bottom:18px;width:400px;max-width:calc(100vw - 32px);height:min(640px,calc(100vh - 36px));border-radius:26px;box-shadow:0 34px 80px rgba(0,0,0,.46),0 6px 18px rgba(0,0,0,.26);pointer-events:none;z-index:2147483000}.schatten[hidden]{display:none}',
+    '.fenster .glanz{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:3}',
+    '.glanz i{position:absolute;top:-20%;bottom:-20%;left:0;width:34%;opacity:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.17),transparent)}',
     '.fenster::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 46%,rgba(255,255,255,.05) 46%,rgba(255,255,255,.05) 60%,transparent 60%,transparent 66%,rgba(255,255,255,.035) 66%,rgba(255,255,255,.035) 69%,transparent 69%),radial-gradient(120% 60px at 40% 0,rgba(255,255,255,.09),transparent 70%)}',
     '.fenster>*{position:relative}',
     '.kopf-leiste{border-bottom:0;padding:16px 14px 12px 20px;gap:14px}.kopf-leiste .mini{width:60px;height:30px;margin:0}',
@@ -294,12 +300,24 @@
     '.eingabe{border-top:1px solid rgba(255,255,255,.1);padding:12px 14px}.eingabe textarea{border-radius:22px}.eingabe textarea::placeholder,.formular ::placeholder{color:#86868b}',
     '.eingabe textarea:focus{outline:2px solid #f5f5f7;border-color:#f5f5f7}',
     '.rund{background:transparent;border-color:rgba(255,255,255,.45);color:#f5f5f7}.datei-chip,.fuss-ki{color:#a1a1a6}',
-    '@media (prefers-reduced-motion:no-preference){.fenster.waechst{animation:glasauf .46s cubic-bezier(.2,0,0,1)}.fenster.schrumpft{animation:glaszu .2s ease-in forwards}}',
-    '@keyframes glasauf{from{opacity:0;transform:scale(.1);border-radius:60px}45%{opacity:1}to{opacity:1;transform:none}}',
-    '@keyframes glaszu{to{opacity:0;transform:scale(.1)}}',
+    '.rotlinie{transform-origin:0 50%}',
+    '.leiste2{border-bottom:0;padding:8px 20px 0}.leiste2 button{font-size:12.5px;text-decoration:none;color:#8e8e93;transition:color .2s}.leiste2 button:hover,.leiste2 button:focus-visible{color:#f5f5f7}',
+    '.verlauf{-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 16px);mask-image:linear-gradient(180deg,transparent 0,#000 16px);padding-top:18px}',
+    '.msg{font-weight:400;border-radius:18px}.msg.hinweis{font-size:12.5px;align-self:flex-start;text-align:left;padding:0 4px}',
+    '.tipp{font-size:13px;font-weight:400;padding:6px 12px;min-height:32px;border-width:1px;border-color:rgba(255,255,255,.26);color:#d9d9de;transition:background .2s,color .2s,border-color .2s}',
+    '.kopf-leiste .zu{border-radius:50%;transition:transform .3s cubic-bezier(.22,1,.36,1),background .2s}.kopf-leiste .zu:hover,.kopf-leiste .zu:focus-visible{transform:rotate(90deg)}',
+    '.rund{transition:transform .18s,background .2s,border-color .2s}.rund:not(:disabled):hover{transform:scale(1.06)}.rund.senden{box-shadow:0 0 18px rgba(235,30,38,.45)}.rund.senden svg{transition:transform .2s}.rund.senden:not(:disabled):hover svg{transform:translateX(2px)}',
+    '.eingabe textarea{transition:border-color .2s,background .2s}',
+    '.fig{transition:transform .16s ease;transform-origin:50% 88%}.knopf:active .fig{transform:scale(.965)}',
+    '.fig.leer .gi{opacity:0!important;transition:none!important}',
+    '.knopf.leise:focus-visible{outline:none}.knopf.leise:focus-visible .schild{opacity:0}',
+    '.fenster.fliesst{-webkit-backdrop-filter:none;backdrop-filter:none}',
+    '@media (prefers-reduced-motion:no-preference){.verlauf>*{animation:msg-rein .36s cubic-bezier(.22,1,.36,1)}.fig.zwinker .lid{animation:zwinker .34s ease}}',
+    '@keyframes msg-rein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}',
+    '@keyframes zwinker{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.1)}}',
     '.nur-vorleser{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
-    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{width:108px;height:106px}.knopf .schild{display:none}}',
-    '@media print{.knopf,.fenster{display:none!important}}'
+    '@media (max-width:600px){.schatten{display:none}.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{width:108px;height:106px}.knopf .schild{display:none}}',
+    '@media print{.knopf,.fenster,.schatten{display:none!important}}'
   ].join('\n');
 
   // ---------- Aufbau ----------
@@ -308,22 +326,24 @@
   host.className = 'kiesel' + (SEITE.licht ? ' licht' : '');
   var root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
   root.innerHTML = '<style>' + CSS + '</style>' + DEFS +
-    '<button class="knopf" type="button" aria-haspopup="dialog" aria-label="Lotse öffnen – KI-Assistent von lechner+hayn">' +
+    '<button class="knopf" type="button" aria-haspopup="dialog" aria-label="' + NAME + ' öffnen – Assistent von lechner+hayn">' +
     '<span class="schild">' + esc(T.titel) + '</span>' + figurSvg(T.merkmal) + '</button>' +
     '<div class="blase" role="status" hidden><span class="blase-text"></span><button type="button" class="weg-x" aria-label="Hinweis schließen">×</button></div>' +
-    '<section class="fenster" role="dialog" aria-modal="false" aria-label="Lotse, KI-Assistent von lechner+hayn" hidden>' +
+    '<div class="schatten" aria-hidden="true" hidden></div>' +
+    '<section class="fenster" role="dialog" aria-modal="false" aria-label="' + NAME + ', Assistent von lechner+hayn" hidden>' +
+    '<div class="glanz" aria-hidden="true"><i></i></div>' +
     '<div class="kopf-leiste"><div class="mini">' + glasSvg() + '</div>' +
-    '<div><div class="name">Lotse</div><div class="ki">KI-Assistent von lechner+hayn</div></div>' +
-    '<button class="zu" type="button" aria-label="Lotse schließen">×</button></div>' +
+    '<div class="wer"><div class="name">' + NAME + '</div><div class="ki">von lechner+hayn</div></div>' +
+    '<button class="zu" type="button" aria-label="' + NAME + ' schließen">×</button></div>' +
     '<div class="rotlinie" aria-hidden="true"></div>' +
     '<div class="marke-zeile" hidden><span>Sie sind bei</span><svg viewBox="0 0 150 22" role="img"></svg></div>' +
-    '<div class="leiste2"><button type="button" class="mensch">Mit einem Menschen sprechen</button><button type="button" class="ruhig" aria-pressed="false">Lotse ruhig stellen</button></div>' +
+    '<div class="leiste2"><button type="button" class="mensch">Mit einem Menschen sprechen</button><button type="button" class="ruhig" aria-pressed="false">Bewegung aus</button></div>' +
     '<div class="verlauf" aria-live="polite"></div>' +
     '<div class="datei-chip" hidden></div>' +
     '<form class="eingabe">' +
     '<input type="file" class="datei" accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv,.txt" hidden>' +
     '<button type="button" class="rund anhang" aria-label="Datei anhängen (Stückliste, Grundriss, Foto)" title="Datei anhängen"><svg viewBox="0 0 24 24"><path d="M21 11.5l-8.5 8.5a5 5 0 01-7-7L14 4.5a3.5 3.5 0 015 5L10.5 18a2 2 0 01-3-3L15 7.5"/></svg></button>' +
-    '<label class="nur-vorleser" for="lh-lotse-text">Ihre Nachricht an den Lotsen</label>' +
+    '<label class="nur-vorleser" for="lh-lotse-text">Ihre Nachricht an den ' + NAME + 'n</label>' +
     '<textarea id="lh-lotse-text" rows="1" placeholder="Frage stellen oder Liste einfügen …"></textarea>' +
     '<button type="submit" class="rund senden" aria-label="Senden"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>' +
     '</form><div class="fuss-ki">Antworten erstellt eine KI und können Fehler enthalten. Verbindlich ist nur das Angebot unseres Teams.</div></section>';
@@ -372,7 +392,7 @@
     }
     function aufspringen() { if (!SEITE.still) schlaf(false); planen(); }       // Name bleibt: wird wach
     var ruhigKnopf = $('.ruhig');
-    function ruhigAnzeigen() { ruhigKnopf.textContent = ruhigGestellt ? 'Lotse wieder bewegen' : 'Lotse ruhig stellen'; ruhigKnopf.setAttribute('aria-pressed', ruhigGestellt ? 'true' : 'false'); }
+    function ruhigAnzeigen() { ruhigKnopf.textContent = ruhigGestellt ? 'Bewegung an' : 'Bewegung aus'; ruhigKnopf.setAttribute('aria-pressed', ruhigGestellt ? 'true' : 'false'); }
     ruhigKnopf.addEventListener('click', function () { ruhigGestellt = !ruhigGestellt; schreib('lh-lotse-ruhig', ruhigGestellt ? '1' : '0'); ruhigAnzeigen(); planen(); });
     ruhigAnzeigen();
     $('.mensch').addEventListener('click', function () { formularZeigen('team'); });
@@ -420,27 +440,66 @@
     window.__lhLotseBlase = blaseZeigen; // nur für Tests
 
 
+    // Öffnen (Arne 14.11.2026: „die letzten 10 %“): Das Fenster wächst als Ausschnitt genau aus dem Glas des Kiesels – nichts wird
+    // gestaucht. Die Augen wandern aus dem Glas in die Kopfzeile, dann zieht sich die rote Linie auf, der Inhalt kommt gestaffelt,
+    // ein Lichtreflex läuft einmal über das Glas, der Schatten folgt zuletzt. Schließen: derselbe Weg zurück, der Kiesel zwinkert.
+    var schatten = $('.schatten'), laeuft = [], zuUhr = null, WEICH = 'cubic-bezier(.22,1,.36,1)', GLEIT = 'cubic-bezier(.5,0,.08,1)';
+    var TEILE = ['.kopf-leiste .wer', '.kopf-leiste .zu', '.marke-zeile', '.leiste2', '.verlauf', '.eingabe', '.fuss-ki'];
+    function stopp() { laeuft.forEach(function (a) { try { a.cancel(); } catch (e) {} }); laeuft = []; clearTimeout(zuUhr); fig.classList.remove('leer'); fenster.classList.remove('fliesst'); }
+    function bewege(el, bilder, opt) { if (!el || !el.animate) return {}; var a = el.animate(bilder, opt); laeuft.push(a); return a; }
+    function glasOrt() {            // wo das Glas des Kiesels gerade auf dem Bildschirm liegt (im SVG: 56/81, 88 × 52 von 200 × 196)
+      var kr = knopf.getBoundingClientRect(), ux = kr.width / 200, uy = kr.height / 196;
+      return { l: kr.left + 56 * ux, t: kr.top + 81 * uy, b: 88 * ux, h: 52 * uy, u: ux };
+    }
+    function ausschnitt(g, fr) {
+      var z = function (v) { return Math.max(0, v).toFixed(1) + 'px '; };
+      return 'inset(' + z(g.t - fr.top) + z(fr.right - g.l - g.b) + z(fr.bottom - g.t - g.h) + z(g.l - fr.left) + 'round ' + (g.h / 2).toFixed(1) + 'px)';
+    }
+    function flug(g, mr) {          // die Augen der Kopfzeile dorthin legen, wo die Augen des Kiesels sind
+      return 'translate(' + (g.l + g.b / 2 - mr.left - mr.width / 2).toFixed(1) + 'px,' + (g.t + g.h / 2 - mr.top - mr.height / 2).toFixed(1) + 'px) scale(' + (g.u / (mr.width / 60)).toFixed(3) + ')';
+    }
     function oeffnen() {
+      stopp();
+      var g = knopf.hidden ? null : glasOrt();
       blase.hidden = true; schlaf(false); clearTimeout(ruheUhr);
-      var kr = knopf.getBoundingClientRect();
-      clearTimeout(zuUhr); fenster.classList.remove('schrumpft');
-      fenster.hidden = false; knopf.hidden = true; knopf.setAttribute('aria-expanded', 'true');
-      var fr = fenster.getBoundingClientRect();   // Ursprung = Mitte des Glases (im SVG 100 / 107 von 200 × 196)
-      fenster.style.transformOrigin = Math.round(kr.left + kr.width / 2 - fr.left) + 'px ' + Math.round(kr.top + kr.height * 107 / 196 - fr.top) + 'px';
-      fenster.classList.remove('waechst'); void fenster.offsetWidth; fenster.classList.add('waechst');
+      fenster.hidden = false; schatten.hidden = false; knopf.setAttribute('aria-expanded', 'true');
       if (!zustand.angezeigt.length) begruessen(); else wiederherstellen();
       setTimeout(function () { feld.focus(); }, 30);
+      if (!BEWEGUNG || !g || !fenster.animate) { knopf.hidden = true; return; }
+      var fr = fenster.getBoundingClientRect(), mini = $('.kopf-leiste .mini'), mr = mini.getBoundingClientRect(), D = 720;
+      var voll = 'inset(0px 0px 0px 0px round ' + getComputedStyle(fenster).borderTopLeftRadius + ')';
+      fig.classList.add('leer'); fenster.classList.add('fliesst');
+      bewege(fenster, [{ clipPath: ausschnitt(g, fr) }, { clipPath: voll }], { duration: D, easing: GLEIT }).onfinish = function () { knopf.hidden = true; fig.classList.remove('leer'); fenster.classList.remove('fliesst'); };
+      bewege(mini, [{ transform: flug(g, mr) }, { transform: 'none' }], { duration: D, easing: GLEIT });
+      bewege(knopf, [{ opacity: 1 }, { opacity: 1, offset: 0.2 }, { opacity: 0 }], { duration: D * 0.55, fill: 'forwards' });
+      bewege(schatten, [{ opacity: 0 }, { opacity: 0, offset: 0.4 }, { opacity: 1 }], { duration: D + 260, easing: 'ease-out' });
+      TEILE.forEach(function (sel, i) {
+        bewege($(sel), [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }], { duration: 460, delay: 400 + i * 50, easing: WEICH, fill: 'backwards' });
+      });
+      bewege($('.rotlinie'), [{ transform: 'scaleX(0)', opacity: 0, filter: 'brightness(1.8)' }, { opacity: 1, filter: 'brightness(1.8)', offset: 0.6 }, { transform: 'scaleX(1)', opacity: 1, filter: 'brightness(1)' }], { duration: 820, delay: 430, easing: WEICH, fill: 'backwards' });
+      bewege($('.glanz i'), [{ transform: 'translateX(-140%) skewX(-18deg)', opacity: 0 }, { opacity: 1, offset: 0.35 }, { transform: 'translateX(360%) skewX(-18deg)', opacity: 0 }], { duration: 1200, delay: 520, easing: 'ease-in-out', fill: 'backwards' });
     }
-    var zuUhr = null;
-    function schliessen() {
+    function schliessen(perTaste) {
+      stopp();
+      knopf.classList.toggle('leise', perTaste !== true);
       knopf.hidden = false; knopf.setAttribute('aria-expanded', 'false'); knopf.focus(); planen();
-      if (!window.matchMedia || matchMedia('(prefers-reduced-motion: reduce)').matches) { fenster.hidden = true; return; }
-      fenster.classList.remove('waechst'); fenster.classList.add('schrumpft');
-      zuUhr = setTimeout(function () { fenster.hidden = true; fenster.classList.remove('schrumpft'); }, 200);
+      if (!BEWEGUNG || !fenster.animate) { fenster.hidden = true; schatten.hidden = true; return; }
+      var g = glasOrt(), fr = fenster.getBoundingClientRect(), mini = $('.kopf-leiste .mini'), mr = mini.getBoundingClientRect(), D = 400, ZUG = 'cubic-bezier(.5,0,.15,1)';
+      var voll = 'inset(0px 0px 0px 0px round ' + getComputedStyle(fenster).borderTopLeftRadius + ')';
+      fig.classList.add('leer'); fenster.classList.add('fliesst');
+      TEILE.concat(['.rotlinie']).forEach(function (sel) { bewege($(sel), [{ opacity: 1 }, { opacity: 0 }], { duration: 90, fill: 'forwards' }); });
+      bewege(fenster, [{ clipPath: voll }, { clipPath: ausschnitt(g, fr) }], { duration: D, delay: 70, easing: ZUG, fill: 'both' }).onfinish = function () {
+        fenster.hidden = true; schatten.hidden = true; stopp();
+        fig.classList.add('zwinker'); setTimeout(function () { fig.classList.remove('zwinker'); }, 400);
+      };
+      bewege(mini, [{ transform: 'none' }, { transform: flug(g, mr) }], { duration: D, delay: 70, easing: ZUG, fill: 'both' });
+      bewege(schatten, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, fill: 'forwards' });
+      bewege(knopf, [{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: 60, fill: 'backwards' });
     }
     knopf.addEventListener('click', oeffnen);
-    zu.addEventListener('click', schliessen);
-    fenster.addEventListener('keydown', function (e) { if (e.key === 'Escape') schliessen(); });
+    zu.addEventListener('click', function (e) { schliessen(e.detail === 0); });
+    knopf.addEventListener('blur', function () { knopf.classList.remove('leise'); });
+    fenster.addEventListener('keydown', function (e) { if (e.key === 'Escape') schliessen(true); });
 
     feld.addEventListener('input', function () {
       feld.style.height = 'auto'; feld.style.height = Math.min(140, feld.scrollHeight) + 'px';
@@ -468,27 +527,24 @@
     return el;
   }
   function begruessen() {
-    var wochenende = /^(Sa|So)/.test(JETZT.tag);
-    zeige('lotse', 'Hallo, ich bin der Lotse, der KI-Assistent von lechner+hayn. Fragen Sie mich alles rund um Ihre Einrichtung – oder fügen Sie einfach eine Stückliste oder Produkte ein. ' +
-      (wochenende ? 'Ein konkretes Angebot oder eine Rückmeldung bekommen Sie am nächsten Werktag.' : 'Spätestens nach 24 Stunden bekommen Sie ein konkretes Angebot oder eine Rückmeldung.'));
+    zeige('lotse', 'Ich bin der ' + NAME + '. Fragen Sie mich alles – oder kopieren Sie es einfach hier rein.');
     tippsZeigen();
+    zeige('hinweis', /^(Sa|So)/.test(JETZT.tag) ? 'Angebot oder Rückmeldung am nächsten Werktag.' : 'Angebot oder Rückmeldung spätestens nach 24 Stunden.');
   }
+  // Kleine Antworten unter der Begrüßung: erst das Einfügen (Stückliste, Produkt, Datei), dann zwei Fragen passend zur Seite.
   function tippsZeigen() {
-    var box = document.createElement('div'); box.className = 'tipps';
-    T.tipps.forEach(function (t) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'tipp'; b.textContent = t;
-      b.addEventListener('click', function () {
-        box.remove();
-        if (/hochladen|schicken/i.test(t)) { zeige('lotse', 'Gern! Hängen Sie die Datei über die Büroklammer an (Excel, CSV, PDF oder Bild) oder fügen Sie die Liste einfach in das Textfeld ein.'); $('.anhang').focus(); return; }
-        if (/^Angebot/i.test(t)) { formularZeigen('angebot'); return; }
-        $('textarea').value = t; senden();
-      });
-      box.appendChild(b);
+    var box = document.createElement('div'), feld = $('textarea'); box.className = 'tipps';
+    function knopf(text, tun) { var b = document.createElement('button'); b.type = 'button'; b.className = 'tipp'; b.textContent = text; b.addEventListener('click', tun); box.appendChild(b); }
+    function einladen(hinweis) { return function () { feld.placeholder = hinweis; feld.focus(); }; }
+    knopf('Stückliste einfügen', einladen('Stückliste hier einfügen (Strg + V) …'));
+    knopf('Produkt einfügen', einladen('Produktname oder Link hier einfügen …'));
+    knopf('Datei anhängen', function () { $('.datei').click(); });
+    T.tipps.filter(function (x) { return !/hochladen|schicken/i.test(x); }).slice(0, 2).forEach(function (x) {
+      knopf(x, function () { box.remove(); if (/^Angebot/i.test(x)) { formularZeigen('angebot'); return; } feld.value = x; senden(); });
     });
     zeige(null, box, false);
   }
   // Antwort Wort für Wort einblenden (höchstens ~0,8 s). Vorleseprogramme bekommen den ganzen Text auf einmal.
-  var BEWEGUNG = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   function quellenZeigen(el, quellen) {
     if (!quellen || !quellen.length) return;
     var q = document.createElement('div'); q.className = 'quellen';
@@ -590,9 +646,9 @@
     var body = { art: 'frage', schluessel: EINST.schluessel, besucher: besucher, bereich: BEREICH, seite: location.pathname, nachrichten: zustand.nachrichten.slice(-16) };
     if (a && a.daten) body.datei = { name: a.name, typ: a.typ, daten: a.daten };
     beschaeftigt = true; $('.senden').disabled = true; denkt(true);
-    var warte = zeige('hinweis', a ? 'Der Lotse öffnet Ihre Datei …' : 'Der Lotse liest nach …', false);
-    var schritte = a ? [[2500, 'Der Lotse liest die Positionen …'], [9000, 'Noch einen Moment – die Liste ist etwas länger …'], [25000, 'Fast fertig …']]
-      : [[1400, 'Der Lotse sucht die passende Stelle …'], [2800, 'Der Lotse formuliert die Antwort …'], [8000, 'Das dauert etwas länger – gleich fertig …']];
+    var warte = zeige('hinweis', a ? 'Der ' + NAME + ' öffnet Ihre Datei …' : 'Der ' + NAME + ' liest nach …', false);
+    var schritte = a ? [[2500, 'Der ' + NAME + ' liest die Positionen …'], [9000, 'Noch einen Moment – die Liste ist etwas länger …'], [25000, 'Fast fertig …']]
+      : [[1400, 'Der ' + NAME + ' sucht die passende Stelle …'], [2800, 'Der ' + NAME + ' formuliert die Antwort …'], [8000, 'Das dauert etwas länger – gleich fertig …']];
     var statusUhren = schritte.map(function (x) { return setTimeout(function () { warte.textContent = x[1]; }, x[0]); });
     var statusEnde = function () { statusUhren.forEach(clearTimeout); warte.remove(); };
     fetch(EINST.adresse, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
