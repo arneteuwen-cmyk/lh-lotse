@@ -107,6 +107,7 @@
     else s.zeichen = { innenarchitektur: 'plan', raumakustik: 'akustik', beleuchtung: 'licht', moebeldesign: 'stuhl', nachhaltigkeit: 'blatt', newwork: 'newwork', consulting: 'consulting' }[BEREICH] || '';
     if (BEREICH === 'beleuchtung' || /\/produkt-kategorie\/beleuchtung/.test(p)) { s.licht = true; if (!s.zeichen || s.zeichen === 'shop') s.zeichen = 'licht'; }
     if (q) s.zeichen = q;
+    s.slug = (QS.match(/lotse-logo=([a-z0-9-]+)/i) || [])[1] || (q ? '' : slug);   // Herstellerseite: Logo statt Buchstabe, wenn es groß genug ist
     return s;
   }
   var SEITE = seiteErkennen();
@@ -129,7 +130,28 @@
     '<filter id="lb2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>' +
     '<filter id="lb6" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>' +
     '<filter id="lb8" x="-60%" y="-300%" width="220%" height="700%"><feGaussianBlur stdDeviation="8"/></filter>' +
-    '<filter id="lb20" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="20"/></filter></defs></svg>';
+    '<filter id="lb20" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="20"/></filter>' +
+    // Herstellerlogo im Glas: dunkles Logo auf hellem oder durchsichtigem Grund wird weiß, der Grund verschwindet
+    '<filter id="lweiss" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 -.2764 -.9298 -.0939 1.3 0"/></filter></defs></svg>';
+  // Herstellerlogo holen: Liste logos.json liegt neben lotse.js (erzeugt von pruefen/baue_logos.py), das Bild in der Mediathek der Seite.
+  // Ins Glas kommt es nur, wenn es dort mindestens 12 Pixel hoch wird; sonst, bei Fehlern oder nach 1,8 s bleibt der Anfangsbuchstabe.
+  function logoHolen(slug, fig, fertig) {
+    var start = Date.now(), erledigt = false;
+    function ende(svg) { if (erledigt) return; erledigt = true; setTimeout(function () { fertig(svg); }, Math.max(0, 700 - (Date.now() - start))); }
+    setTimeout(function () { ende(''); }, 1800);
+    try {
+      var basis = skript && skript.src ? skript.src.replace(/[^\/]*$/, '') : 'https://arneteuwen-cmyk.github.io/lh-lotse/';
+      fetch(basis + 'logos.json').then(function (r) { return r.json(); }).then(function (liste) {
+        var e = liste[slug]; if (!e) return ende('');
+        var k = fig.querySelector('.koerper').getBoundingClientRect().height / 119;   // Pixel je Zeichen-Einheit
+        if (Math.min(26, 62 / e[1]) * k < 12) return ende('');
+        var adr = location.origin + '/wp-content/uploads/' + e[0], b = new Image();
+        b.onload = function () { ende('<image href="' + adr + '" x="-31" y="-13" width="62" height="26" preserveAspectRatio="xMidYMid meet" filter="url(#lweiss)"/>'); };
+        b.onerror = function () { ende(''); };
+        b.src = adr;
+      }).catch(function () { ende(''); });
+    } catch (e) { ende(''); }
+  }
   var AUGEN_SVG = '<rect x="-16" y="-9" width="9" height="18" rx="4.5" fill="#fff"/><rect x="7" y="-9" width="9" height="18" rx="4.5" fill="#fff"/>';
   var figNr = 0;
   function figurSvg(merkmal, klein) {
@@ -330,7 +352,10 @@
     // wo man ist; beim ersten Besuch erscheint einmal sein Schild.
     if (NACHT || SEITE.still) schlaf(true);
     if (!SEITE.still) {
-      if (SEITE.zeichen) setTimeout(function () { fig.classList.add('ankunft'); setTimeout(function () { fig.classList.remove('ankunft'); }, 2400); }, 700);
+      // Das Zeichen (auf Herstellerseiten das Logo) bleibt 2,4 s im Glas, dann kommen die Augen zurück.
+      var ankommen = function () { fig.classList.add('ankunft'); setTimeout(function () { fig.classList.remove('ankunft'); }, 2400); };
+      if (SEITE.slug) logoHolen(SEITE.slug, fig, function (bild) { if (bild) fig.querySelector('.g-zeichen').innerHTML = bild; if (bild || SEITE.zeichen) ankommen(); });
+      else if (SEITE.zeichen) setTimeout(ankommen, 700);
       if (!lies('lh-lotse-gegruesst', true) && !NACHT) {
         schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
         setTimeout(function () { knopf.classList.add('zeigen'); }, 3300);

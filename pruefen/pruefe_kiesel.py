@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 
 B = "https://lechner-hayn-staging.dev10.econsor-programming.de"
 CODE = (Path(__file__).parent.parent / "lotse.js").read_bytes()
+LOGOS = (Path(__file__).parent.parent / "logos.json").read_bytes()
 AUS = Path(__file__).parent / "fotos"
 AUS.mkdir(exist_ok=True)
 J = "document.getElementById('lh-lotse').shadowRoot"
@@ -40,6 +41,7 @@ def seite(b, pfad, vp=(1440, 900), mobil=False, gegruesst=True):
         c.add_init_script("sessionStorage.setItem('lh-lotse-gegruesst','1')")
     s = c.new_page()
     s.route("**/lh-lotse/lotse.js", lambda r: r.fulfill(body=CODE, content_type="application/javascript"))
+    s.route("**/lh-lotse/logos.json", lambda r: r.fulfill(body=LOGOS, content_type="application/json", headers={"Access-Control-Allow-Origin": "*"}))
     s.route("**/webhook/lh-homepage-lotse", n8n)
     fehl = []
     s.on("pageerror", lambda e: fehl.append(str(e)))
@@ -102,6 +104,19 @@ with sync_playwright() as p:
         s.wait_for_timeout(2600)
         l = lage(s)
         ok(float(l["augen"]) > .9 and float(l["zeichenSichtbar"]) < .1, f"{titel}: danach wieder die Augen")
+        c.close()
+    # 3b Herstellerlogo im Glas: kurzes Logo erscheint und verschwindet wieder, langes Logo bleibt beim Buchstaben
+    for slug, soll in [("vitra", True), ("bene", True), ("fritz-hansen", False)]:
+        c, s, _ = seite(b, f"/marke/lintex/?lotse-logo={slug}&lotse-zeit=tag&lotse-saison=keine")
+        s.wait_for_timeout(400)
+        da = s.evaluate(f"(()=>{{const i={J}.querySelector('.knopf .g-zeichen image'); return !!i && i.getBoundingClientRect().height}})()")
+        l = lage(s)
+        ok(bool(da) == soll and float(l["zeichenSichtbar"]) > .8, f"Logo {slug}: {'Logo im Glas' if soll else 'Buchstabe bleibt'} ({da})")
+        if soll:
+            foto(s, f"logo_{slug}", f"Logo {slug}")
+        s.wait_for_timeout(2700)
+        l = lage(s)
+        ok(float(l["augen"]) > .9 and float(l["zeichenSichtbar"]) < .1, f"Logo {slug}: verschwindet wieder, Augen zurück")
         c.close()
     # 4 Licht: leuchtet
     c, s, _ = seite(b, "/produkt-kategorie/beleuchtung/?lotse-zeit=tag&lotse-saison=keine")
