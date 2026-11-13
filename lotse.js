@@ -59,127 +59,154 @@
   var SAISON = (QS.match(/lotse-saison=([a-z]+)/) || [])[1] ||
     (JETZT.monat === 12 && JETZT.datum <= 26 ? 'dezember' : ((JETZT.monat === 6 && JETZT.datum >= 21) || JETZT.monat === 7 || JETZT.monat === 8) ? 'sommer' : '');
   if (SAISON === 'keine') SAISON = '';
-  // Stil (Arne 07.11.2026): „ruhig“ ist Standard – feine Linie, eine Erkennungsgeste (sitzt auf der Kontakt-Ecke), Weihnachtsmütze bleibt.
-  // „verspielt“ nur zum Vergleich: ?lotse-stil=verspielt oder data-stil="verspielt" am Script-Tag.
-  var STIL = (QS.match(/lotse-stil=(ruhig|verspielt)/) || [])[1] || (skript && skript.getAttribute('data-stil')) || 'ruhig';
-  var RUHIG = STIL !== 'verspielt';
-  if (RUHIG && SAISON === 'sommer') SAISON = '';
+  // Gestalt seit 13.11.2026 (Arne): der „Kiesel“, Form C – ein Objekt aus Keramikweiß, schwarzem Glas und rotem Licht.
+  // Außenhaut immer gleich; das Glas blendet ein, wo man gerade ist; auf Licht-Seiten leuchtet er. Dezember: Weihnachtsmütze.
+  var RUHIG = false;
+  if (SAISON === 'sommer') SAISON = '';
   var T = TEXTE[BEREICH] || (BEREICH.indexOf('hersteller-') === 0 ? TEXTE.hersteller : TEXTE.allgemein);
 
-  // ---------- Figur (Linien, SVG) ----------
-  var MERKMALE = {
-    muetze: '<g class="mz"><path class="r fl" d="M35 17c3-11 27-11 30 0z"/><path class="r" d="M30 17.5h40"/></g>',
-    stift: '<path d="M66 12l9-9 4 4-9 9z"/><path class="r" d="M66 12l-3 7 7-3"/><path d="M14 64h10M16 60h6"/><rect x="11" y="56" width="14" height="5" rx="2.5" class="r"/>',
-    wellen: '<path class="r w1" d="M75 27c3 3 3 9 0 12"/><path class="r w2" d="M80 23c5 5 5 15 0 20"/><path class="r w1" d="M25 27c-3 3-3 9 0 12"/><path class="r w2" d="M20 23c-5 5-5 15 0 20"/>',
-    leuchte: '<path d="M50 0v5"/><path class="r fl" d="M41 11c0-7 18-7 18 0z"/><path class="r lz" d="M43 14l-3 3M57 14l3 3"/>',
-    zollstock: '<path class="r" d="M70 60l18-18 4 4-18 18z"/><path d="M75 55l2 2M79 51l2 2M83 47l2 2"/>',
-    blatt: '<path class="r fl" d="M60 10c10-6 20-2 20-2s-2 12-14 14c-4 1-7-1-6-5"/><path class="r" d="M62 18c6-3 10-6 14-9"/>',
-    massband: '<circle class="r" cx="80" cy="62" r="8"/><path class="r" d="M80 70H62"/><path d="M66 70v-3M70 70v-3M74 70v-3"/>'
+  // ---------- Figur: Kiesel C (SVG) ----------
+  var KOERPER = 'M161.0 114.0L160.9 121.9L160.5 127.4L160.0 132.2L159.2 136.6L158.1 140.7L156.9 144.5L155.4 148.1L153.7 151.4L151.8 154.5L149.7 157.4L147.3 160.1L144.8 162.5L142.0 164.8L139.0 166.8L135.8 168.6L132.3 170.2L128.7 171.6L124.7 172.0L120.5 172.0L115.9 172.0L110.7 172.0L104.6 172.0L95.4 172.0L89.3 172.0L84.1 172.0L79.5 172.0L75.3 172.0L71.3 171.6L67.7 170.2L64.2 168.6L61.0 166.8L58.0 164.8L55.2 162.5L52.7 160.1L50.3 157.4L48.2 154.5L46.3 151.4L44.6 148.1L43.1 144.5L41.9 140.7L40.8 136.6L40.0 132.2L39.5 127.4L39.1 121.9L39.0 114.0L39.1 106.1L39.5 100.6L40.0 95.8L40.8 91.4L41.9 87.3L43.1 83.5L44.6 79.9L46.3 76.6L48.2 73.5L50.3 70.6L52.7 67.9L55.2 65.5L58.0 63.2L61.0 61.2L64.2 59.4L67.7 57.8L71.3 56.4L75.3 55.3L79.5 54.4L84.1 53.7L89.3 53.3L95.4 53.0L104.6 53.0L110.7 53.3L115.9 53.7L120.5 54.4L124.7 55.3L128.7 56.4L132.3 57.8L135.8 59.4L139.0 61.2L142.0 63.2L144.8 65.5L147.3 67.9L149.7 70.6L151.8 73.5L153.7 76.6L155.4 79.9L156.9 83.5L158.1 87.3L159.2 91.4L160.0 95.8L160.5 100.6L160.9 106.1L161.0 114.0Z', FUSS = 24.7;
+  var ZEICHEN_SVG = {
+    leistungen: '<path d="M-11 -11h9v9h-9zM2 -11h9v9h-9zM-11 2h9v9h-9zM2 2h9v9h-9z"/>',
+    referenzen: '<path d="M-11 11V-10H3V11M3 -2H11V11M-15 11H15M-7 -5h2M-2 -5h1M-7 0h2M-2 0h1M-7 5h2M-2 5h1"/>',
+    insights: '<path d="M-13 -8H13M-13 -1H13M-13 6H3"/>',
+    kontakt: '<path d="M-13 -10H13V5H-1L-8 11V5H-13Z"/>',
+    plan: '<path d="M-16 -11H16V11H-16ZM-2 -11V0M-2 11V6M-2 0A6 6 0 0 1 4 6"/>',
+    akustik: '<circle cx="-12" cy="0" r="2.6" fill="#fff" stroke="none"/><path d="M-5.6 -6.4A9 9 0 0 1 -5.6 6.4M-1.4 -10.6A15 15 0 0 1 -1.4 10.6M4.8 -10.9A20 20 0 0 1 4.8 10.9"/>',
+    licht: '<circle r="5"/><path d="M8.5 0.0L12.5 0.0 M6.0 6.0L8.8 8.8 M0.0 8.5L0.0 12.5 M-6.0 6.0L-8.8 8.8 M-8.5 0.0L-12.5 0.0 M-6.0 -6.0L-8.8 -8.8 M-0.0 -8.5L-0.0 -12.5 M6.0 -6.0L8.8 -8.8"/>',
+    stuhl: '<path d="M-8 -11L-6 2H8M-6 2L-8 11M8 2L10 11"/>',
+    blatt: '<path d="M-10 9C-10 -6 2 -11 12 -10C13 2 6 11 -6 9ZM-10 9L4 -3"/>',
+    newwork: '<circle cx="-6" r="9"/><circle cx="6" r="9"/>',
+    consulting: '<path d="M-12 10V4M-4 10V-1M4 10V-6M12 10V-11" stroke-width="3.4"/>',
+    umzug: '<path d="M-15 -5H1V10H-15ZM-15 0H1M5 3H16M12 -1L16 3L12 7"/>',
+    ausbau: '<path d="M-14 -9H14V9H-14ZM-14 -3H14M-14 3H14M0 -9V-3M-7 -3V3M7 -3V3M0 3V9"/>',
+    shop: '<path d="M-10 -4H10L8 11H-8ZM-5 -4V-7A5 5 0 0 1 5 -7V-4"/>',
+    produkt: '<path d="M0 -12L11 -6V6L0 12L-11 6V-6ZM-11 -6L0 0L11 -6M0 0V12"/>',
+    suche: '<circle cx="-3" cy="-3" r="8"/><path d="M3 3L12 12"/>'
   };
-  function figurSvg(merkmal, klein) {
-    return '<svg class="fig' + (klein ? ' klein' : '') + (SAISON ? ' ' + SAISON : '') + (merkmal === 'leuchte' ? ' ohne-xmas' : '') + '" viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
-      '<g class="koerper">' +
-      '<g class="beine-stehen"><path d="M50 72c-3 6-6 11-9 15M50 72c3 6 6 11 9 15"/><path d="M37 87h6M57 87h6"/></g>' +
-      '<g class="beine-boden"><path d="M50 84c-5-1-10-3-14-6c-2 3-4 6-6 9M50 84c-7 1-14 2-21 2"/><path d="M26 87h5M24 86h-2"/></g>' +
-      '<g class="beine-sitzen"><path class="bein-boden" d="M50 72L38 80L29 90"/><path class="fuss-boden" d="M24 90h6"/><path class="bein-kante" d="M50 72L45 64L40 82"/><path class="fuss-kante" d="M37 85l6-6"/></g>' +
-      '<g class="oben">' +
-      '<path d="M50 52v20"/>' +
-      '<path class="arm-l" d="M50 58c-6 2-10 6-13 10"/><path class="arm-r" d="M50 58c6 2 10 6 13 10"/>' +
-      '<path class="ap ap-sk" d="M50 58c-4 3-8 5-10 8"/><path class="ap ap-sb" d="M50 58c4 5 7 10 8 16"/><path class="ap ap-z" d="M50 58c6-1 11-1 17-1"/><path class="ap ap-h" d="M50 58c7-2 13-6 17-12"/><path class="ap ap-fr" d="M50 58c7-2 14-6 19-13"/><path class="ap ap-fl" d="M50 58c-7-2-14-6-19-13"/>' +
-      '<circle class="kopf" cx="50" cy="32" r="19"/>' +
-      '<circle class="wange" cx="38.5" cy="38" r="3.2"/><circle class="wange" cx="61.5" cy="38" r="3.2"/>' +
-      '<g class="blick"><g class="augen"><ellipse cx="43" cy="31" rx="2.3" ry="2.8" class="p"/><ellipse cx="57" cy="31" rx="2.3" ry="2.8" class="p"/>' +
-      '<circle cx="43.8" cy="30" r=".8" class="glanz"/><circle cx="57.8" cy="30" r=".8" class="glanz"/></g></g>' +
-      '<g class="zu-augen"><path d="M40.5 31c1.6 1.6 3.4 1.6 5 0M54.5 31c1.6 1.6 3.4 1.6 5 0"/></g>' +
-      '<g class="brille"><path class="glas" d="M37 27h11v4.5c0 2.6-2.4 4-5.5 4S37 34 37 31.5z"/><path class="glas" d="M52 27h11v4.5c0 2.6-2.4 4-5.5 4S52 34 52 31.5z"/><path d="M48 28.5h4M37 28l-5-2M63 28l5-2"/><path class="glanz-l" d="M39.5 29.5l2.5-1.5M54.5 29.5l2.5-1.5"/></g>' +
-      '<path class="mund" d="M45 39.5c3 3.2 7 3.2 10 0"/>' +
-      '<g class="xmas"><path class="fl r" d="M32 18C34 6 58 1 67 10c4 4 8 9 11 15l-9-6z"/><rect class="weiss" x="30" y="15" width="40" height="5.5" rx="2.75"/><circle class="weiss" cx="79" cy="26" r="3.6"/></g>' +
-      '<g class="zzz"><path class="z1" d="M70 12h5l-5 5h5"/><path class="z2" d="M78 4h4l-4 4h4"/><path class="z3" d="M85 -3h3l-3 3h3"/></g>' +
-      (MERKMALE[merkmal] || MERKMALE.muetze) +
-      '</g>' +
-      '<path class="zeichnen r" d="M28 95c8-4 14 3 22-1s12 2 20-1"/>' +
-      '</g></svg>';
+  // Welches Zeichen zeigt das Glas beim Ankommen? Unabhängig vom Wissensbereich (BEREICH), nur aus Adresse und Seitenart.
+  var HERSTELLER_KURZ = { 'koenig-neurath': 'K+N', 'hersteller': 'A–Z', 'usm': 'USM', 'xal': 'XAL', 'oka': 'OKA' };
+  var LICHT_HERSTELLER = /^(occhio|artemide|xal|delta-light|foscarini|waldmann|grau|tobias-grau)$/;
+  function seiteErkennen() {
+    var p = (location.pathname || '').toLowerCase(), k = document.body ? document.body.className : '', q = (QS.match(/lotse-zeichen=([a-z0-9:+–-]+)/i) || [])[1];
+    var m = p.match(/\/marke\/([a-z0-9-]+)/), slug = m ? m[1] : (BEREICH.indexOf('hersteller-') === 0 ? BEREICH.slice(11) : '');
+    var s = { zeichen: '', still: false, licht: /lotse-licht=1/.test(QS) };
+    if (/warenkorb|kasse|cart|checkout|impressum|datenschutz|agb/.test(p)) s.still = true;
+    else if (/(^|\s)error404(\s|$)/.test(k)) s.zeichen = 'text:?';
+    else if (/(^|\s)search(\s|$)/.test(k)) s.zeichen = 'suche';
+    else if (slug) { s.zeichen = 'text:' + (HERSTELLER_KURZ[slug] || slug.charAt(0).toUpperCase()); if (LICHT_HERSTELLER.test(slug)) s.licht = true; }
+    else if (/(^|\s)single-product(\s|$)/.test(k) || /\/produkt\//.test(p)) s.zeichen = 'produkt';
+    else if (/\/produkt-kategorie\/|\/shop/.test(p) || BEREICH === 'shop') s.zeichen = 'shop';
+    else if (/\/kontakt/.test(p)) s.zeichen = 'kontakt';
+    else if (/\/referenz/.test(p)) s.zeichen = 'referenzen';
+    else if (/\/news\/|\/insights/.test(p)) s.zeichen = 'insights';
+    else if (/umzug/.test(p)) s.zeichen = 'umzug';
+    else if (/innenausbau/.test(p)) s.zeichen = 'ausbau';
+    else if (/\/leistungen-expertise\/?$/.test(p)) s.zeichen = 'leistungen';
+    else s.zeichen = { innenarchitektur: 'plan', raumakustik: 'akustik', beleuchtung: 'licht', moebeldesign: 'stuhl', nachhaltigkeit: 'blatt', newwork: 'newwork', consulting: 'consulting' }[BEREICH] || '';
+    if (BEREICH === 'beleuchtung' || /\/produkt-kategorie\/beleuchtung/.test(p)) { s.licht = true; if (!s.zeichen || s.zeichen === 'shop') s.zeichen = 'licht'; }
+    if (q) s.zeichen = q;
+    return s;
   }
+  var SEITE = seiteErkennen();
+  if (SEITE.still) T = { titel: T.titel, merkmal: T.merkmal, tipps: T.tipps, blase: '' };
+  function linie(d) { return '<g fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + d + '</g>'; }
+  function zeichenSvg(z) {
+    if (!z) return '';
+    if (z.indexOf('text:') === 0) { var t = z.slice(5), gr = t.length === 1 ? 27 : t.length === 2 ? 21 : 17;
+      return '<text y="' + (gr * 0.355).toFixed(1) + '" text-anchor="middle" font-size="' + gr + '" font-weight="600" fill="#fff" font-family="Segoe UI,Helvetica Neue,Arial,sans-serif">' + esc(t) + '</text>'; }
+    return ZEICHEN_SVG[z] ? linie(ZEICHEN_SVG[z]) : '';
+  }
+  var DEFS = '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' +
+    '<radialGradient id="lglasur" cx="34%" cy="22%" r="95%"><stop offset="0" stop-color="#fff"/><stop offset=".3" stop-color="#f1f1f4"/><stop offset=".62" stop-color="#d6d6dc"/><stop offset="1" stop-color="#9a9aa6"/></radialGradient>' +
+    '<radialGradient id="lwarm" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#fffef6"/><stop offset=".6" stop-color="#ffedb8"/><stop offset="1" stop-color="#f4cc74"/></radialGradient>' +
+    '<linearGradient id="lunten" x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stop-color="#3c3c4b" stop-opacity="0"/><stop offset="1" stop-color="#3c3c4b" stop-opacity=".4"/></linearGradient>' +
+    '<linearGradient id="lfase" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".42"/><stop offset=".5" stop-color="#8a8a92" stop-opacity=".25"/><stop offset="1" stop-color="#fff" stop-opacity=".95"/></linearGradient>' +
+    '<linearGradient id="lscheibe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1e1e23"/><stop offset=".5" stop-color="#0b0b0d"/><stop offset="1" stop-color="#050506"/></linearGradient>' +
+    '<linearGradient id="lspiegel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+    '<filter id="lb1" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="1.4"/></filter>' +
+    '<filter id="lb2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.6"/></filter>' +
+    '<filter id="lb6" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="6"/></filter>' +
+    '<filter id="lb8" x="-60%" y="-300%" width="220%" height="700%"><feGaussianBlur stdDeviation="8"/></filter>' +
+    '<filter id="lb20" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="20"/></filter></defs></svg>';
+  var AUGEN_SVG = '<rect x="-16" y="-9" width="9" height="18" rx="4.5" fill="#fff"/><rect x="7" y="-9" width="9" height="18" rx="4.5" fill="#fff"/>';
+  var figNr = 0;
+  function figurSvg(merkmal, klein) {
+    var i = ++figNr, rot = EINST.rot, f1 = (100 - FUSS + 3).toFixed(1), f2 = (100 + FUSS - 3).toFixed(1), fb = Math.round(FUSS);
+    return '<svg class="fig' + (klein ? ' klein' : '') + (SAISON ? ' ' + SAISON : '') + '" viewBox="0 0 200 196" aria-hidden="true" focusable="false">' +
+      '<defs><clipPath id="lk' + i + '"><path d="' + KOERPER + '"/></clipPath><clipPath id="lg' + i + '"><rect x="56" y="81" width="88" height="52" rx="26"/></clipPath></defs>' +
+      '<circle class="hof" cx="100" cy="114" r="92" fill="#ffd36b" filter="url(#lb20)"/>' +
+      '<ellipse cx="104" cy="178" rx="' + (fb + 34) + '" ry="8" fill="#000" opacity=".2" filter="url(#lb8)"/>' +
+      '<ellipse cx="100" cy="173.5" rx="' + (fb + 6) + '" ry="3" fill="#000" opacity=".42" filter="url(#lb2)"/>' +
+      '<ellipse class="rotlicht" cx="100" cy="175" rx="' + (fb + 6) + '" ry="6" fill="' + rot + '" opacity=".45" filter="url(#lb6)"/>' +
+      '<path class="koerper" d="' + KOERPER + '" fill="url(#lglasur)"/><path class="warm" d="' + KOERPER + '" fill="url(#lwarm)"/>' +
+      '<g clip-path="url(#lk' + i + ')"><rect class="schatt" x="30" y="50" width="140" height="130" fill="url(#lunten)"/>' +
+      '<ellipse class="rotlicht" cx="100" cy="174" rx="' + (fb + 8) + '" ry="13" fill="' + rot + '" opacity=".3" filter="url(#lb6)"/>' +
+      '<path d="' + KOERPER + '" fill="none" stroke="#fff" stroke-width="4" opacity=".42" filter="url(#lb2)"/>' +
+      '<ellipse cx="76" cy="72" rx="27" ry="13" fill="#fff" opacity=".9" filter="url(#lb6)" transform="rotate(-30 76 72)"/>' +
+      '<ellipse cx="71" cy="69" rx="10" ry="4" fill="#fff" filter="url(#lb1)" transform="rotate(-30 71 69)"/>' +
+      '<ellipse cx="141" cy="150" rx="10" ry="20" fill="#fff" opacity=".3" filter="url(#lb6)" transform="rotate(28 141 150)"/></g>' +
+      '<path d="' + KOERPER + '" fill="none" stroke="rgba(0,0,0,.13)" stroke-width=".8"/>' +
+      '<path class="rotlicht" d="M' + f1 + ' 170.8H' + f2 + '" stroke="' + rot + '" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<rect x="53.8" y="78.8" width="92.4" height="56.4" rx="28.2" fill="url(#lfase)"/><rect x="56" y="81" width="88" height="52" rx="26" fill="url(#lscheibe)"/>' +
+      '<g clip-path="url(#lg' + i + ')"><ellipse cx="92" cy="84" rx="50" ry="11" fill="url(#lspiegel)"/><path d="M114 77L130 77L102 137L86 137Z" fill="#fff" opacity=".055"/></g>' +
+      '<g transform="translate(100 107)">' +
+      '<g class="gi g-augen"><g filter="url(#lb2)" opacity=".7">' + AUGEN_SVG.replace(/#fff/g, '#dfe9ff') + '</g><g class="lid">' + AUGEN_SVG + '</g></g>' +
+      '<g class="gi g-zu"><path d="M-16 1h9M7 1h9" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></g>' +
+      '<g class="gi g-zeichen">' + zeichenSvg(SEITE.zeichen) + '</g>' +
+      '<g class="gi g-welle"><rect class="b1" x="-22" y="-4" width="4" height="8" rx="2" fill="#fff"/><rect class="b2" x="-12" y="-8" width="4" height="16" rx="2" fill="#fff"/><rect class="b3" x="-2" y="-12" width="4" height="24" rx="2" fill="#fff"/><rect class="b2" x="8" y="-7" width="4" height="14" rx="2" fill="#fff"/><rect class="b1" x="18" y="-4" width="4" height="8" rx="2" fill="#fff"/></g>' +
+      '<g class="gi g-liste">' + linie('<path d="M-8 -9H16M-8 0H16M-8 9H16"/><path d="M-16 -9h.1M-16 0h.1M-16 9h.1" stroke-width="3.6"/>') + '</g>' +
+      '<g class="gi g-pin">' + linie('<path d="M0 12C-8 3 -10 -1 -10 -4A10 10 0 0 1 10 -4C10 -1 8 3 0 12Z"/><circle cy="-4" r="3.2"/>') + '</g>' +
+      '<g class="gi g-haken"><path d="M-12 0L-4 8L12 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>' +
+      '<g class="xmas"><path d="M56 80C58 46 104 30 132 50C144 60 152 76 155 92L142 84C130 62 92 60 56 80Z" fill="' + rot + '"/>' +
+      '<path d="M55 82C80 64 118 63 142 87" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><circle cx="156" cy="96" r="6.5" fill="#fff"/></g>' +
+      '</svg>';
+  }
+
 
   // ---------- Stil ----------
   var CSS = [
     ':host{all:initial;font-family:inherit;color:#1a1a1a}',
     '*{box-sizing:border-box;font-family:inherit}',
-    '.fig{width:100%;height:100%;overflow:visible}',
-    '.fig path,.fig circle,.fig rect,.fig ellipse{fill:none;stroke:#1a1a1a;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}',
-    '.fig .r{stroke:' + EINST.rot + '}',
-    '.fig .p{fill:#1a1a1a;stroke:none}',
-    '.fig .kopf{fill:#fff}',
-    '.fig .wange{fill:' + EINST.rot + ';stroke:none;opacity:.18}',
-    '.fig .glanz{fill:#fff;stroke:none}',
-    '.fig .fl{fill:' + EINST.rot + '}',
-    '.fig .zeichnen{opacity:0;stroke-dasharray:60;stroke-dashoffset:60}',
-    '.knopf{position:fixed;right:var(--lotse-rechts,18px);bottom:var(--lotse-unten,18px);width:104px;height:112px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent}',
-    '.knopf .fig{filter:drop-shadow(0 0 1.2px #fff) drop-shadow(0 0 1.2px #fff) drop-shadow(0 1px 3px rgba(0,0,0,.25))}',
-    ':host(.stil-ruhig) .knopf .fig{filter:drop-shadow(0 0 1px #fff) drop-shadow(0 0 1px #fff) drop-shadow(0 1px 2px rgba(0,0,0,.18))}',
-    '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:4px;border-radius:12px}',
-    '.knopf .schild{position:absolute;right:92px;bottom:64px;white-space:nowrap;background:#1a1a1a;color:#fff;font-size:14px;line-height:1.2;padding:8px 12px;border-radius:14px 14px 2px 14px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}',
+    '.fig{width:100%;height:100%;overflow:visible;display:block}',
+    '.knopf{position:fixed;right:var(--lotse-rechts,2px);bottom:var(--lotse-unten,0px);width:146px;height:143px;border:0;background:transparent;cursor:pointer;padding:0;z-index:2147483000;-webkit-tap-highlight-color:transparent;pointer-events:none}',
+    '.knopf .fig *{pointer-events:visiblePainted}.knopf .fig .hof{pointer-events:none}',
+    '.knopf:focus-visible{outline:3px solid ' + EINST.rot + ';outline-offset:-22px;border-radius:40px}',
+    '.knopf .schild{position:absolute;right:124px;bottom:66px;white-space:nowrap;background:#1a1a1a;color:#fff;font-size:14px;line-height:1.2;padding:8px 12px;border-radius:14px 14px 2px 14px;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none}',
     '.knopf:hover .schild,.knopf.zeigen .schild,.knopf:focus-visible .schild{opacity:1;transform:none}',
+    '.gi{opacity:0;transition:opacity .4s ease}.g-augen{opacity:1}',
+    '.fig.ruht .g-augen{opacity:0}.fig.ruht .g-zu{opacity:1}',
+    '.fig.ankunft .g-augen,.fig.ankunft .g-zu{opacity:0}.fig.ankunft .g-zeichen{opacity:1}',
+    '.fig.zeigt .g-augen,.fig.haelt .g-augen,.fig.freut .g-augen{opacity:0}.fig.zeigt .g-liste,.fig.haelt .g-pin,.fig.freut .g-haken{opacity:1}',
+    '.fig.denkt .g-augen,.fig.denkt .g-zu,.fig.denkt .g-zeichen,.fig.denkt .g-liste,.fig.denkt .g-pin,.fig.denkt .g-haken{opacity:0}.fig.denkt .g-welle{opacity:1}',
+    '.rotlicht{transition:opacity .6s ease}.fig.ruht .rotlicht{opacity:.14}.fig.ruht path.rotlicht{opacity:.45}',
+    '.hof,.warm{opacity:0}.xmas{display:none}.dezember .xmas{display:inline}',
+    ':host(.licht) .hof{opacity:.3}:host(.licht) .warm{opacity:.6}:host(.licht) .schatt{opacity:.35}',
     '@media (prefers-reduced-motion:no-preference){',
-    ' .koerper{animation:atmen 3.6s ease-in-out infinite;transform-origin:50% 90%}',
-    ' .augen{animation:blinzeln 5.2s infinite;transform-origin:50% 33px}',
-    ' .w1{animation:welle 1.8s ease-in-out infinite}.w2{animation:welle 1.8s ease-in-out .3s infinite}',
-    ' .lz{animation:welle 2.4s ease-in-out infinite}',
-    ' .winkt .arm-r{animation:winken .5s ease-in-out 4;transform-origin:50px 56px}',
-    ' .huepft .koerper{animation:huepfen .6s ease-out 1}',
-    ' .denkt .zeichnen{opacity:1;animation:zeichnen 1.4s linear infinite}',
-    ' .denkt .arm-r{transform:rotate(28deg);transform-origin:50px 56px;transition:transform .3s}',
+    ' :host(.licht) .knopf .hof{animation:lichtan 6s ease forwards}:host(.licht) .knopf .warm{animation:warman 6s ease forwards}',
+    ' .lid{animation:blinzeln 6.4s infinite;transform-box:fill-box;transform-origin:center}',
+    ' .fig.denkt .b1{animation:welle 1s ease-in-out infinite}.fig.denkt .b2{animation:welle 1s ease-in-out .15s infinite}.fig.denkt .b3{animation:welle 1s ease-in-out .3s infinite}',
+    ' .blase{animation:blase-rein .35s ease-out}',
     '}',
-    '.blick{transition:transform .15s}.schaut-links .blick{transform:translateX(-2px)!important}.schaut-unten .blick{transform:translateY(1.6px)!important}',
-    '.zu-augen,.brille,.xmas,.zzz{display:none}',
-    '.schlaeft .augen{display:none}.schlaeft .zu-augen,.schlaeft .zzz{display:inline}',
-    '.sommer .brille{display:inline}.sommer .brille .glas{fill:#1a1a1a}.sommer .brille .glanz-l{stroke:#fff;stroke-width:1.4}.sommer .augen{visibility:hidden}.sommer.schlaeft .brille{display:none}',
-    '.dezember .xmas{display:inline}.dezember .mz{display:none}.dezember .xmas .weiss{fill:#fff}.dezember.ohne-xmas .xmas{display:none}',
-    '.ap{display:none}.zeigt .arm-r,.haelt .arm-r,.freut .arm-r,.freut .arm-l{display:none}.zeigt .ap-z,.haelt .ap-h,.freut .ap-fr,.freut .ap-fl{display:inline}',
-    '.mini-zeile{display:flex;gap:8px;align-items:flex-end;align-self:stretch}.mini-zeile .mini-fig{width:46px;height:52px;flex:none}.mini-zeile .msg{max-width:none;flex:1}',
-    '.karte{flex:1;border:1.5px solid #1a1a1a;border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}.karte strong{display:block;margin-bottom:4px}.karte a{color:#1a1a1a}',
-    '.blase{position:fixed;right:max(10px,calc(var(--lotse-rechts,18px) - 120px));bottom:calc(var(--lotse-unten,18px) + 124px);max-width:min(280px,calc(100vw - 40px));background:#1a1a1a;color:#fff;font-size:14px;line-height:1.35;padding:10px 34px 10px 14px;border-radius:16px 16px 4px 16px;z-index:2147483000;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}',
-    '.blase[hidden]{display:none}.blase .weg-x{position:absolute;right:4px;top:4px;border:0;background:none;color:#fff;font-size:18px;cursor:pointer;width:28px;height:28px}',
-    '@media (max-width:600px){.blase{right:10px;bottom:calc(var(--lotse-unten,8px) + 96px)}}',
-    '@media (prefers-reduced-motion:no-preference){.zzz .z1{animation:zz 2.4s ease-in-out infinite}.zzz .z2{animation:zz 2.4s ease-in-out .5s infinite}.zzz .z3{animation:zz 2.4s ease-in-out 1s infinite}.freut .koerper{animation:luftsprung .9s cubic-bezier(.3,1.6,.5,1) 2}.blase{animation:blase-rein .35s ease-out}}',
-    '@keyframes zz{0%,100%{opacity:0;transform:translateY(3px)}40%,70%{opacity:1;transform:none}}',
-    '@keyframes luftsprung{0%,100%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-4deg)}}',
+    '.ruhe .lid,.ruhe .b1,.ruhe .b2,.ruhe .b3{animation:none!important}',
+    '@keyframes lichtan{0%{opacity:0}14%{opacity:.85}60%{opacity:.85}100%{opacity:.3}}',
+    '@keyframes warman{0%{opacity:0}14%{opacity:1}60%{opacity:1}100%{opacity:.6}}',
+    '@keyframes blinzeln{0%,95%,100%{transform:scaleY(1)}97.5%{transform:scaleY(.12)}}',
+    '@keyframes welle{0%,100%{opacity:.35}50%{opacity:1}}',
     '@keyframes blase-rein{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}',
+    '.mini-zeile{display:flex;gap:6px;align-items:flex-end;align-self:stretch}.mini-zeile .mini-fig{width:58px;height:57px;flex:none;margin-bottom:-4px}.mini-zeile .msg{max-width:none;flex:1}',
+    '.karte{flex:1;border:1.5px solid #1a1a1a;border-radius:12px;padding:10px 12px;font-size:14px;background:#fff}.karte strong{display:block;margin-bottom:4px}.karte a{color:#1a1a1a}',
+    '.blase{position:fixed;right:max(10px,calc(var(--lotse-rechts,2px) - 60px));bottom:calc(var(--lotse-unten,0px) + 138px);max-width:min(280px,calc(100vw - 40px));background:#1a1a1a;color:#fff;font-size:14px;line-height:1.35;padding:10px 34px 10px 14px;border-radius:16px 16px 4px 16px;z-index:2147483000;box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}',
+    '.blase[hidden]{display:none}.blase .weg-x{position:absolute;right:4px;top:4px;border:0;background:none;color:#fff;font-size:18px;cursor:pointer;width:28px;height:28px}',
+    '@media (max-width:600px){.blase{right:10px;bottom:calc(var(--lotse-unten,0px) + 108px)}}',
     '.leiste2{display:flex;justify-content:space-between;gap:8px;padding:6px 14px;border-bottom:1px solid #eee}',
     '.leiste2 button{border:0;background:none;padding:6px 0;font-size:13px;color:#1a1a1a;text-decoration:underline;cursor:pointer;min-height:32px}',
-    '.ruhe .koerper,.ruhe .augen,.ruhe .w1,.ruhe .w2,.ruhe .lz,.ruhe .zzz path{animation:none!important}.ruhe .blick{transform:none!important}',
     '.quellen{margin-top:6px;font-size:12.5px;color:#555}.quellen a{color:#1a1a1a;font-weight:600}',
-    ':host(.stil-ruhig) .fig path,:host(.stil-ruhig) .fig circle,:host(.stil-ruhig) .fig rect,:host(.stil-ruhig) .fig ellipse{stroke-width:2}',
-    ':host(.stil-ruhig) .fig .p,:host(.stil-ruhig) .fig .glanz,:host(.stil-ruhig) .fig .wange{stroke:none}',
-    ':host(.stil-ruhig) .wange{display:none}',
-    ':host(.stil-ruhig) .mund{transform:scale(.8);transform-origin:50px 40px}',
-    ':host(.stil-ruhig) .zzz,:host(.stil-ruhig) .brille{display:none!important}',
-    ':host(.stil-ruhig) .knopf{transition:transform .9s cubic-bezier(.4,0,.2,1)!important}',
-    ':host(.stil-ruhig) .huepft .koerper{animation:none!important}',
-    '@media (prefers-reduced-motion:no-preference){:host(.stil-ruhig) .springt .koerper{animation:huepfen-sanft .55s cubic-bezier(.3,.7,.4,1) 1!important}',
-    ' .kommt{animation:auftritt 1.2s cubic-bezier(.22,.8,.3,1) both}}',
-    '.sofort,.sofort *,:host(.stil-ruhig) .knopf.sofort,:host(.stil-ruhig) .knopf.sofort *{transition:none!important}',
-    '@keyframes huepfen-sanft{0%{transform:translateY(0)}40%{transform:translateY(-7px)}100%{transform:translateY(0)}}',
-    '@keyframes auftritt{0%{opacity:0;transform:translateX(-28px)}100%{opacity:1;transform:none}}',
-    ':host(.stil-ruhig) .koerper{animation-duration:5s!important}',
-    ':host(.stil-ruhig) .w1,:host(.stil-ruhig) .w2,:host(.stil-ruhig) .lz{animation-duration:3.2s!important}',
-    '.beine-sitzen,.beine-boden{display:none}.sitzt .beine-stehen{display:none}.sitzt .beine-sitzen{display:inline}',
-    '.oben{transition:transform .8s cubic-bezier(.4,0,.2,1)}.sitzt .oben{transform:rotate(var(--lehne,6deg));transform-origin:50px 72px}.sitzt .arm-r{transform:rotate(60deg);transform-origin:50px 58px}.sitzt .arm-l{display:none}.sitzt .ap-sk{display:inline}',
-    '.gruesst .arm-r{display:none}.gruesst .ap-h{display:inline;transform-origin:50px 58px}',
-    '@media (prefers-reduced-motion:no-preference){.gruesst .ap-h{animation:gruss .7s ease-in-out 2}}',
-    '@keyframes gruss{0%,100%{transform:rotate(0)}50%{transform:rotate(-14deg)}}',
-    '.knopf.sitzt{pointer-events:none}.knopf.sitzt .fig *{pointer-events:visiblePainted}',
-    '@media (prefers-reduced-motion:no-preference){.knopf{transition:transform .5s cubic-bezier(.34,1.56,.64,1)}.springt .koerper{animation:huepfen .6s ease-out 1}}',
-    '@keyframes atmen{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}',
-    '@keyframes blinzeln{0%,94%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}',
-    '@keyframes welle{0%,100%{opacity:.25}50%{opacity:1}}',
-    '@keyframes winken{0%,100%{transform:rotate(0)}50%{transform:rotate(-55deg)}}',
-    '@keyframes huepfen{0%{transform:translateY(0)}35%{transform:translateY(-9px)}70%{transform:translateY(0)}85%{transform:translateY(-2px)}}',
-    '@keyframes zeichnen{0%{stroke-dashoffset:60}70%{stroke-dashoffset:0}100%{stroke-dashoffset:0;opacity:0}}',
     '.fenster{position:fixed;right:18px;bottom:18px;width:400px;max-width:calc(100vw - 32px);height:min(640px,calc(100vh - 36px));background:#fff;border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.08);display:flex;flex-direction:column;overflow:hidden;z-index:2147483001;font-size:15px;line-height:1.45}',
     '.fenster[hidden]{display:none}',
     '.kopf-leiste{display:flex;align-items:center;gap:10px;padding:12px 12px 10px 14px;border-bottom:1px solid #eee}',
-    '.kopf-leiste .mini{width:50px;height:54px;flex:none}',
+    '.kopf-leiste .mini{width:60px;height:59px;flex:none;margin:-6px -4px -8px -6px}',
     '.kopf-leiste .name{font-weight:700;font-size:16px}',
     '.kopf-leiste .ki{font-size:12px;color:#666}',
     '.kopf-leiste .zu{margin-left:auto;width:40px;height:40px;border:0;background:transparent;border-radius:10px;cursor:pointer;font-size:22px;line-height:1;color:#1a1a1a}',
@@ -220,16 +247,16 @@
     '.datei-chip{font-size:12px;color:#444;padding:0 12px 6px}',
     '.fuss-ki{font-size:11px;color:#777;text-align:center;padding:0 10px 8px}',
     '.nur-vorleser{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
-    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{right:var(--lotse-rechts,8px);bottom:var(--lotse-unten,8px);width:76px;height:84px}.knopf .schild{display:none}}',
+    '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{width:108px;height:106px}.knopf .schild{display:none}}',
     '@media print{.knopf,.fenster{display:none!important}}'
   ].join('\n');
 
   // ---------- Aufbau ----------
   var host = document.createElement('div');
   host.id = 'lh-lotse';
-  host.className = 'stil-' + (RUHIG ? 'ruhig' : 'verspielt');
+  host.className = 'kiesel' + (SEITE.licht ? ' licht' : '');
   var root = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
-  root.innerHTML = '<style>' + CSS + '</style>' +
+  root.innerHTML = '<style>' + CSS + '</style>' + DEFS +
     '<button class="knopf" type="button" aria-haspopup="dialog" aria-label="Lotse öffnen – KI-Assistent von lechner+hayn">' +
     '<span class="schild">' + esc(T.titel) + '</span>' + figurSvg(T.merkmal) + '</button>' +
     '<div class="blase" role="status" hidden><span class="blase-text"></span><button type="button" class="weg-x" aria-label="Hinweis schließen">×</button></div>' +
@@ -248,22 +275,19 @@
     '<button type="submit" class="rund senden" aria-label="Senden"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>' +
     '</form><div class="fuss-ki">Antworten erstellt eine KI und können Fehler enthalten. Verbindlich ist nur das Angebot unseres Teams.</div></section>';
 
-  // Feste Elemente der Website unten rechts (z. B. die rote Kontakt-Ecke .cta-fixed) nicht verdecken: Lotse darüber setzen.
-  // Gibt es die rote Kontakt-Ecke (.cta-fixed) unten rechts, steht der Lotse auf dem Boden links daneben – die Füße auf der
-  // Unterkante, nie im Dreieck. Ohne Ecke steht er wie gewohnt unten rechts.
+  // Der Kiesel steht auf der Unterkante links neben der roten Kontakt-Ecke (.cta-fixed), nie im Dreieck.
+  // Ohne Ecke steht er unten rechts. Im SVG (200 × 196) liegt die Standfläche bei y = 172, der Körper reicht bis x = 161.
   function platz() {
     var ecke = null, kandidaten = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
     for (var i = 0; i < kandidaten.length; i++) {
       var r = kandidaten[i].getBoundingClientRect();
       if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) ecke = r;
     }
-    var k = root.querySelector('.knopf');
-    if (!ecke || !k) { host.style.removeProperty('--lotse-rechts'); host.style.removeProperty('--lotse-unten'); return; }
-    var w = k.offsetWidth || 104, h = k.offsetHeight || 112, sk = Math.min(w, h) / 100, oy = (h - 100 * sk) / 2;
-    var fuss = oy + 88.5 * sk;                                   // Unterkante der Füße im Knopf
-    host.style.setProperty('--lotse-rechts', Math.round(innerWidth - ecke.left + 2 - (w - 69 * sk)) + 'px'); // rechte Hand/Fuß knapp vor dem Dreieck
-    host.style.setProperty('--lotse-unten', Math.round(innerHeight - ecke.bottom - (h - fuss)) + 'px');
-    if (window.__lhLotseNeu) window.__lhLotseNeu();
+    var k = root.querySelector('.knopf'), w = (k && k.offsetWidth) || 146, h = (k && k.offsetHeight) || 143;
+    var randR = w * 39 / 200, randU = h * 24 / 196;
+    if (!ecke) { host.style.setProperty('--lotse-rechts', Math.round(14 - randR) + 'px'); host.style.setProperty('--lotse-unten', Math.round(12 - randU) + 'px'); return; }
+    host.style.setProperty('--lotse-rechts', Math.round(innerWidth - ecke.left + 6 - randR) + 'px');
+    host.style.setProperty('--lotse-unten', Math.round(innerHeight - ecke.bottom - randU) + 'px');
   }
   function start() { document.body.appendChild(host); einrichten(); platz(); setTimeout(platz, 1500); addEventListener('resize', platz); }
   if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
@@ -283,60 +307,17 @@
     var knopf = $('.knopf'), fenster = $('.fenster'), zu = $('.zu'), form = $('.eingabe'), feld = $('textarea'),
       dateiFeld = $('.datei'), anhangKnopf = $('.anhang');
 
-    // Start (Arne 11.11.2026): Er sitzt brav auf dem Boden neben der Kontakt-Ecke. Beim Öffnen der Seite – einmal je Besuch –
-    // steht er auf, grüßt kurz und setzt sich wieder. Danach sitzt er leicht und elegant im Hintergrund.
-    var ersterBesuch = !lies('lh-lotse-gewunken');
-    knopf.classList.add('sofort');
-    setTimeout(function () { hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); }, 0);
-    if (!lies('lh-lotse-gegruesst', true)) {
-      schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
-      var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      setTimeout(function () { if (!still) aufstehen(); }, 1800);
-      setTimeout(function () { knopf.classList.add('zeigen'); if (!still) knopf.classList.add(RUHIG ? 'gruesst' : 'winkt'); }, 2600);
-      setTimeout(function () { knopf.classList.remove('gruesst', 'winkt', 'zeigen'); hinsetzen(); }, 5200);
-    }
-    if (!ersterBesuch && lies('lh-lotse-bereich') !== BEREICH) {
-      if (!RUHIG) setTimeout(function () { knopf.classList.add('huepft'); setTimeout(function () { knopf.classList.remove('huepft'); }, 700); }, 1200);
-    }
-    schreib('lh-lotse-bereich', BEREICH);
-
-    // Sitzen und Aufspringen: Ohne Aktion setzt sich der Lotse nach einer Weile auf die schräge Kante der Kontakt-Ecke.
-    // Maus darüber, Fokus oder Antippen: er springt auf. Ohne Kontakt-Ecke bleibt er stehen.
-    var dx = 0, dy = 0, sitzUhr = null;
-    function ecke() {
-      var k = document.querySelectorAll('.cta-fixed, [data-lotse-ausweichen]');
-      for (var i = 0; i < k.length; i++) { var r = k[i].getBoundingClientRect(); if (r.width > 40 && r.right > innerWidth - 120 && r.bottom > innerHeight - 40) return r; }
-      return null;
-    }
-        var hinsetzen = function () {
-      var r = ecke(); if (!r || knopf.hidden || beschaeftigt || knopf.matches(':hover') || knopf.classList.contains('gruesst')) return;
-      // Standplatz aus dem Layout (offsetLeft/-Top), unabhängig von laufenden Bewegungen und Verschiebungen
-      var w = knopf.offsetWidth, h = knopf.offsetHeight, sk = Math.min(w, h) / 100, oy = (h - 100 * sk) / 2;
-      var hx = knopf.offsetLeft + 50 * sk, hy = knopf.offsetTop + oy + 72 * sk;  // Hüfte im Stand
-      // Hüfte liegt auf der Kante, 13 Einheiten über dem Boden: dann steht Fuß A (y 85) auf der Unterkante links neben
-      // der Ecke und Fuß B auf der schrägen Fläche. Breite Ecke/Höhe = Steigung (45° bei der Kontakt-Ecke).
-      var hoehe = 18 * sk, fall = 16.6 * sk;
-      var ty = r.bottom - fall, tx = r.left + hoehe * (r.width / r.height);
-      dx = Math.round(tx - hx); dy = Math.round(ty - hy);
-      knopf.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; knopf.classList.add('sitzt');
-    };
-    function aufstehen() { knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; }
-    function aufspringen() {
-      if (knopf.classList.contains('sitzt')) {
-        aufstehen();
-        knopf.classList.add('springt'); setTimeout(function () { knopf.classList.remove('springt'); }, 650);
-      }
-      planen();
-    }
-    var ruheUhr = null, ruhigGestellt = lies('lh-lotse-ruhig') === '1';
+    // Zustände des Kiesels: wach (Augen), ruht (Augen zu, Licht gedimmt), ankunft (Zeichen der Seite, 2,4 s).
+    var fig = knopf.querySelector('.fig'), ruheUhr = null, ruhigGestellt = lies('lh-lotse-ruhig') === '1';
     function ruhe(an) { host.classList.toggle('ruhe-an', !!an); var f = root.querySelectorAll('.fig'); for (var i = 0; i < f.length; i++) f[i].classList.toggle('ruhe', !!an); }
+    function schlaf(an) { fig.classList.toggle('ruht', !!an); }
     function planen() {
-      clearTimeout(sitzUhr); clearTimeout(ruheUhr);
+      clearTimeout(ruheUhr);
       if (ruhigGestellt) { ruhe(true); return; }
       ruhe(false);
-      sitzUhr = setTimeout(function () { hinsetzen(); }, 6000);
-      ruheUhr = setTimeout(function () { ruhe(true); }, 60000);
+      ruheUhr = setTimeout(function () { ruhe(true); schlaf(true); }, 60000);   // nach einer Minute ohne Aktion ruht er
     }
+    function aufspringen() { if (!SEITE.still) schlaf(false); planen(); }       // Name bleibt: wird wach
     var ruhigKnopf = $('.ruhig');
     function ruhigAnzeigen() { ruhigKnopf.textContent = ruhigGestellt ? 'Lotse wieder bewegen' : 'Lotse ruhig stellen'; ruhigKnopf.setAttribute('aria-pressed', ruhigGestellt ? 'true' : 'false'); }
     ruhigKnopf.addEventListener('click', function () { ruhigGestellt = !ruhigGestellt; schreib('lh-lotse-ruhig', ruhigGestellt ? '1' : '0'); ruhigAnzeigen(); planen(); });
@@ -344,18 +325,21 @@
     $('.mensch').addEventListener('click', function () { formularZeigen('team'); });
     knopf.addEventListener('mouseenter', aufspringen); knopf.addEventListener('focus', aufspringen);
     knopf.addEventListener('touchstart', aufspringen, { passive: true });
-    window.__lhLotseNeu = function () { if (knopf.classList.contains('sitzt')) { knopf.classList.add('sofort'); aufstehen(); hinsetzen(); requestAnimationFrame(function () { requestAnimationFrame(function () { knopf.classList.remove('sofort'); }); }); } };
-    addEventListener('resize', function () { window.__lhLotseNeu(); });
+
+    // Ankommen: Abends, am Wochenende und auf stillen Seiten (Kasse, Rechtliches) ruht er. Sonst zeigt das Glas kurz,
+    // wo man ist; beim ersten Besuch erscheint einmal sein Schild.
+    if (NACHT || SEITE.still) schlaf(true);
+    if (!SEITE.still) {
+      if (SEITE.zeichen) setTimeout(function () { fig.classList.add('ankunft'); setTimeout(function () { fig.classList.remove('ankunft'); }, 2400); }, 700);
+      if (!lies('lh-lotse-gegruesst', true) && !NACHT) {
+        schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
+        setTimeout(function () { knopf.classList.add('zeigen'); }, 3300);
+        setTimeout(function () { knopf.classList.remove('zeigen'); }, 6800);
+      }
+    }
+    schreib('lh-lotse-bereich', BEREICH);
     planen();
 
-    // Abends und am Wochenende schläft er (auf der Kante, wenn es eine gibt). Beim Aufspringen wacht er auf.
-    function schlaf(an) { var f = knopf.querySelector('.fig'); if (f) f.classList.toggle('schlaeft', !!an); }
-    if (NACHT && !RUHIG) {
-      schlaf(true);
-      knopf.addEventListener('mouseenter', function () { schlaf(false); });
-      knopf.addEventListener('focus', function () { schlaf(false); });
-      var wachHin = hinsetzen; hinsetzen = function () { wachHin(); if (knopf.classList.contains('sitzt') || !ecke()) schlaf(true); };
-    }
 
     // Lese-Blase: wer eine Seite bis fast unten liest und mindestens 20 s da ist, bekommt einmal je Besuch ein passendes Angebot.
     var blase = $('.blase'), seitStart = Date.now(), blaseGezeigt = !!lies('lh-lotse-blase', true);
@@ -373,22 +357,9 @@
     }, { passive: true });
     window.__lhLotseBlase = blaseZeigen; // nur für Tests
 
-    // Augen folgen der Maus (nur mit Maus, nicht bei reduzierter Bewegung).
-    if (!RUHIG && window.matchMedia && matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      var plan = false, mx = 0, my = 0;
-      document.addEventListener('mousemove', function (e) {
-        mx = e.clientX; my = e.clientY; if (plan || ruhigGestellt || knopf.querySelector('.fig.ruhe')) return; plan = true;
-        requestAnimationFrame(function () {
-          plan = false; if (knopf.hidden) return;
-          var k = knopf.getBoundingClientRect(), cx = k.left + k.width / 2, cy = k.top + k.height * 0.32, vx = mx - cx, vy = my - cy, l = Math.sqrt(vx * vx + vy * vy) || 1;
-          var b = knopf.querySelector('.blick'); if (b) b.style.transform = 'translate(' + (vx / l * 1.8).toFixed(2) + 'px,' + (vy / l * 1.5).toFixed(2) + 'px)';
-        });
-      }, { passive: true });
-    }
 
     function oeffnen() {
-      blase.hidden = true; schlaf(false);
-      knopf.classList.remove('sitzt'); dx = dy = 0; knopf.style.transform = ''; clearTimeout(sitzUhr);
+      blase.hidden = true; schlaf(false); clearTimeout(ruheUhr);
       fenster.hidden = false; knopf.hidden = true; knopf.setAttribute('aria-expanded', 'true');
       if (!zustand.angezeigt.length) begruessen(); else wiederherstellen();
       setTimeout(function () { feld.focus(); }, 30);
@@ -658,7 +629,7 @@
         .then(function (d) {
           if (d && d.ok) { f.remove(); var dank = document.createElement('div'); dank.className = 'msg lotse'; dank.textContent = d.antwort;
             zeige(null, miniZeile(RUHIG ? '' : 'freut', dank), false); zustand.angezeigt.push(['lotse', d.antwort]);
-            var kf = RUHIG ? null : root.querySelector('.kopf-leiste .fig'); if (kf) { kf.classList.add('freut'); setTimeout(function () { kf.classList.remove('freut'); }, 2000); } zustand.positionen = []; sichern(); var t = root.querySelector('.verlauf .tabelle'); if (t) t.remove(); var zl = root.querySelector('.verlauf .zeige-liste'); if (zl) zl.remove(); }
+            var kf = RUHIG ? null : root.querySelector('.kopf-leiste .fig'); if (kf) { kf.classList.add('freut'); setTimeout(function () { kf.classList.remove('freut'); }, 2000); } zustand.positionen = []; sichern(); var t = root.querySelector('.verlauf .tabelle'); if (t) t.remove(); var zl = root.querySelector('.verlauf .zeige-liste'); if (zl) zl.remove(); $('textarea').focus(); }
           else { fehler.textContent = (d && d.antwort) || 'Das hat nicht geklappt.'; knopf.disabled = false; knopf.textContent = 'Anfrage senden'; }
         })
         .catch(function () { fehler.textContent = 'Keine Verbindung. Bitte versuchen Sie es noch einmal.'; knopf.disabled = false; knopf.textContent = 'Anfrage senden'; });
