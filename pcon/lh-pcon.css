@@ -1,0 +1,119 @@
+/* lechner+hayn - Stil des pCon-Konfigurators.
+   Stand 13.11.2026: unveraenderte Uebernahme der bisherigen pcon.css aus dem Theme (Stand 10.11.2026). */
+
+button#egr_add_to_basket {
+	background-color: #000 !important;
+	border: 1px solid;
+}
+
+button#egr_add_to_basket:hover {
+	color: #000;
+	background-color: transparent !important;
+	transition: 0.3s ease-in-out;
+}
+
+div#egr_send_request {
+	background-color: #ebebeb !important;
+	border-color: #ebebeb;
+	color: #000;
+	transition:0.3s ease-in-out;
+}
+
+div#egr_send_request:hover {background-color: #1a1a1a !important;opacity: 0.7;color: #fff;}
+
+.mui-iue8qv:hover {
+	color: #1a1a1a !important;
+	opacity:0.7;
+}
+
+#egr_add_to_basket_number,
+#egr_add_to_basket_x {
+	display: none;
+}
+
+body {
+	font-family: 'Inter', sans-serif;
+	/* font-size: 16px; */
+	color: #000 !important;
+}
+
+body * {
+	/* font-size: 1em !important; */
+}
+
+.MuiTabs-root button {
+	/* font-size: 14px !important; */
+	/* padding-inline: 5px; */
+	color: #000 !important;
+}
+
+h2 {
+	@media screen and (min-width: 718px) {
+		/* BREAKPOINT anhand der iframe-size bei gewünschtem viewport setzen */
+		font-size: 30px !important;
+
+	}
+}
+
+p, h2, h3 {
+	color: #000 !important;
+}
+
+.tss-custom-xb1ph2-CustomMainContainer-withScrollbars-CustomMainContainer-withPIM > * {
+	padding-inline: 0 !important;
+	/* width: 100%; */
+	/* max-width: unset; */
+}
+
+.tss-custom-xb1ph2-CustomMainContainer-withScrollbars-CustomMainContainer-withPIM {
+	@media screen and (max-width: 717px) {
+		/* BREAKPOINT anhand der iframe-size bei gewünschtem viewport setzen */
+		/* flex-direction: column; */
+	}
+}
+
+.tss-custom-bku81x-CustomMainContainer-scene {
+	@media screen and (max-width: 717px) {
+		/* aspect-ratio: 2.5 / 1; */
+		/* margin-bottom: 0; */
+		/* -webkit-box-flex: 0; */
+		/* flex-grow: 0; */
+		/* flex-shrink: 0; */
+		/* position: relative; */
+		/* overflow: hidden; */
+	}
+}
+
+.tss-custom-wperec-ArticleDrawerContent-withoutScrollbars .tss-custom-49-ArticleDrawerContent-content-ref {
+	@media screen and (max-width: 567px) {
+		min-height: unset !important;
+	}
+}
+
+.tss-custom-rtzlvo-ArticleFooter-root {
+	padding-bottom: 0;
+}
+
+.MuiPaper-root:last-child {
+	margin-bottom: 0;
+}
+
+.MuiPaper-root button#egr_add_to_basket,
+.MuiPaper-root #egr_send_request {
+	padding: 10px 25px;
+	border-radius: 25px;
+	display: flex;
+	align-items: center;
+	letter-spacing: 2px;
+	font-weight: 400;
+	line-height: 1.5;
+
+	@media screen and (min-width: 718px) {
+		/* BREAKPOINT anhand der iframe-size bei gewünschtem viewport setzen */
+		font-size: 18px;
+	}
+}
+
+body * {
+	max-height: unset !important;
+}
