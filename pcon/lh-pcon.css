@@ -30,7 +30,12 @@ body * {
 	margin-bottom: 0;
 }
 
-/* ---- Titel und Unterzeile ---- */
+/* ---- Titel und Unterzeile: ausgeblendet, der Titel steht gross auf der Artikelseite (Wunsch 14.11.2026).
+        Wieder einblenden: die folgende Regel loeschen. ---- */
+[class*="ArticleHeaderCustomPlaceholder-root"] {
+	display: none !important;
+}
+
 [class*="ArticleHeaderCustomPlaceholder-primary"] {
 	font-size: 28px !important;
 	font-weight: 600 !important;
@@ -63,8 +68,10 @@ body [class*="ArticleHeaderCustomPlaceholder-secondary"] {
 		padding-right: 2px !important;
 	}
 }
+/* rote Linie unter dem aktiven Reiter (Wunsch 14.11.2026) */
 #egr_tab_indicator {
-	background-color: #000 !important;
+	background-color: #EB1E26 !important;
+	height: 3px !important;
 }
 
 /* ---- Preis ---- */
