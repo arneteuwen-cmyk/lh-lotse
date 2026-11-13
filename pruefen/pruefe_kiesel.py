@@ -77,6 +77,9 @@ with sync_playwright() as p:
     s.locator("#lh-lotse >> css=.knopf .koerper").click()
     s.wait_for_timeout(400)
     ok(s.locator("#lh-lotse >> css=.fenster").is_visible(), "Klick auf den Kiesel öffnet das Fenster")
+    s.wait_for_timeout(500)
+    gl = s.evaluate(f"(()=>{{const r={J}, f=r.querySelector('.fenster'), c=getComputedStyle(f), a=r.querySelector('.kopf-leiste .fig.nurglas .g-augen'); return {{grund:c.backgroundImage.slice(0,15), farbe:c.color, augen:a?getComputedStyle(a).opacity:'', linie:!!r.querySelector('.rotlinie'), form:c.transform}}}})()")
+    ok(gl["grund"].startswith("linear-gradient") and gl["farbe"] == "rgb(245, 245, 247)" and gl["augen"] == "1" and gl["linie"] and gl["form"] in ("none", "matrix(1, 0, 0, 1, 0, 0)"), f"Glasfenster: dunkles Glas, Augen im Kopf, rote Linie, voll aufgewachsen {gl}")
     s.locator("#lh-lotse >> css=textarea").fill("Liste: 8 Edge Wall, 2 Stehtische"); s.keyboard.press("Enter"); s.wait_for_timeout(1400)
     ok(s.evaluate(f"!!{J}.querySelector('.zeige-liste .fig.zeigt') && !!{J}.querySelector('.tabelle')"), "Chat: Kiesel zeigt die Liste, Tabelle da")
     s.locator("#lh-lotse >> css=.tabelle .aktion").first.click(); s.wait_for_timeout(300)
@@ -114,6 +117,11 @@ with sync_playwright() as p:
         ok(bool(da) == soll and float(l["zeichenSichtbar"]) > .8, f"Logo {slug}: {'Logo im Glas' if soll else 'Buchstabe bleibt'} ({da})")
         if soll:
             foto(s, f"logo_{slug}", f"Logo {slug}")
+        s.locator("#lh-lotse >> css=.knopf .koerper").click(); s.wait_for_timeout(700)
+        ok(s.evaluate(f"(()=>{{const m={J}.querySelector('.marke-zeile'); return !m.hidden && !!m.querySelector('image') && m.getBoundingClientRect().height>10}})()"), f"Logo {slug}: steht im Glasfenster in der Kopfzeile")
+        if slug == "fritz-hansen":
+            s.screenshot(path=str(AUS / "kiesel_fenster_marke.png"), clip={"x": 1000, "y": 230, "width": 440, "height": 670})
+        s.keyboard.press("Escape"); s.wait_for_timeout(400)
         s.wait_for_timeout(2700)
         l = lage(s)
         ok(float(l["augen"]) > .9 and float(l["zeichenSichtbar"]) < .1, f"Logo {slug}: verschwindet wieder, Augen zurück")

@@ -137,22 +137,33 @@
   // Ins Glas kommt es nur, wenn es dort mindestens 12 Pixel hoch wird; sonst, bei Fehlern oder nach 1,8 s bleibt der Anfangsbuchstabe.
   function logoHolen(slug, fig, fertig) {
     var start = Date.now(), erledigt = false;
-    function ende(svg) { if (erledigt) return; erledigt = true; setTimeout(function () { fertig(svg); }, Math.max(0, 700 - (Date.now() - start))); }
+    function ende(svg, adr) { if (erledigt) return; erledigt = true; setTimeout(function () { fertig(svg, adr || ''); }, Math.max(0, 700 - (Date.now() - start))); }
     setTimeout(function () { ende(''); }, 1800);
     try {
       var basis = skript && skript.src ? skript.src.replace(/[^\/]*$/, '') : 'https://arneteuwen-cmyk.github.io/lh-lotse/';
       fetch(basis + 'logos.json').then(function (r) { return r.json(); }).then(function (liste) {
         var e = liste[slug]; if (!e) return ende('');
         var k = fig.querySelector('.koerper').getBoundingClientRect().height / 119;   // Pixel je Zeichen-Einheit
-        if (Math.min(26, 62 / e[1]) * k < 12) return ende('');
+        var gross = Math.min(26, 62 / e[1]) * k >= 12;
         var adr = location.origin + '/wp-content/uploads/' + e[0], b = new Image();
-        b.onload = function () { ende('<image href="' + adr + '" x="-31" y="-13" width="62" height="26" preserveAspectRatio="xMidYMid meet" filter="url(#lweiss)"/>'); };
+        b.onload = function () { ende(!gross ? '' : '<image href="' + adr + '" x="-31" y="-13" width="62" height="26" preserveAspectRatio="xMidYMid meet" filter="url(#lweiss)"/>', adr); };
         b.onerror = function () { ende(''); };
         b.src = adr;
       }).catch(function () { ende(''); });
     } catch (e) { ende(''); }
   }
   var AUGEN_SVG = '<rect x="-16" y="-9" width="9" height="18" rx="4.5" fill="#fff"/><rect x="7" y="-9" width="9" height="18" rx="4.5" fill="#fff"/>';
+  // Was im Glas zu sehen ist: Augen, Zeichen der Seite, Zustände im Gespräch. Der Kiesel und die Kopfzeile des Glasfensters zeigen dasselbe.
+  function glasInhalt() {
+    return '<g class="gi g-augen"><g filter="url(#lb2)" opacity=".7">' + AUGEN_SVG.replace(/#fff/g, '#dfe9ff') + '</g><g class="lid">' + AUGEN_SVG + '</g></g>' +
+      '<g class="gi g-zu"><path d="M-16 1h9M7 1h9" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></g>' +
+      '<g class="gi g-zeichen">' + zeichenSvg(SEITE.zeichen) + '</g>' +
+      '<g class="gi g-welle"><rect class="b1" x="-22" y="-4" width="4" height="8" rx="2" fill="#fff"/><rect class="b2" x="-12" y="-8" width="4" height="16" rx="2" fill="#fff"/><rect class="b3" x="-2" y="-12" width="4" height="24" rx="2" fill="#fff"/><rect class="b2" x="8" y="-7" width="4" height="14" rx="2" fill="#fff"/><rect class="b1" x="18" y="-4" width="4" height="8" rx="2" fill="#fff"/></g>' +
+      '<g class="gi g-liste">' + linie('<path d="M-8 -9H16M-8 0H16M-8 9H16"/><path d="M-16 -9h.1M-16 0h.1M-16 9h.1" stroke-width="3.6"/>') + '</g>' +
+      '<g class="gi g-pin">' + linie('<path d="M0 12C-8 3 -10 -1 -10 -4A10 10 0 0 1 10 -4C10 -1 8 3 0 12Z"/><circle cy="-4" r="3.2"/>') + '</g>' +
+      '<g class="gi g-haken"><path d="M-12 0L-4 8L12 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  }
+  function glasSvg() { return '<svg class="fig nurglas" viewBox="-30 -15 60 30" aria-hidden="true" focusable="false">' + glasInhalt() + '</svg>'; }
   var figNr = 0;
   function figurSvg(merkmal, klein) {
     var i = ++figNr, rot = EINST.rot, f1 = (100 - FUSS + 3).toFixed(1), f2 = (100 + FUSS - 3).toFixed(1), fb = Math.round(FUSS);
@@ -173,14 +184,7 @@
       '<path class="rotlicht" d="M' + f1 + ' 170.8H' + f2 + '" stroke="' + rot + '" stroke-width="2.4" stroke-linecap="round"/>' +
       '<rect x="53.8" y="78.8" width="92.4" height="56.4" rx="28.2" fill="url(#lfase)"/><rect x="56" y="81" width="88" height="52" rx="26" fill="url(#lscheibe)"/>' +
       '<g clip-path="url(#lg' + i + ')"><ellipse cx="92" cy="84" rx="50" ry="11" fill="url(#lspiegel)"/><path d="M114 77L130 77L102 137L86 137Z" fill="#fff" opacity=".055"/></g>' +
-      '<g transform="translate(100 107)">' +
-      '<g class="gi g-augen"><g filter="url(#lb2)" opacity=".7">' + AUGEN_SVG.replace(/#fff/g, '#dfe9ff') + '</g><g class="lid">' + AUGEN_SVG + '</g></g>' +
-      '<g class="gi g-zu"><path d="M-16 1h9M7 1h9" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></g>' +
-      '<g class="gi g-zeichen">' + zeichenSvg(SEITE.zeichen) + '</g>' +
-      '<g class="gi g-welle"><rect class="b1" x="-22" y="-4" width="4" height="8" rx="2" fill="#fff"/><rect class="b2" x="-12" y="-8" width="4" height="16" rx="2" fill="#fff"/><rect class="b3" x="-2" y="-12" width="4" height="24" rx="2" fill="#fff"/><rect class="b2" x="8" y="-7" width="4" height="14" rx="2" fill="#fff"/><rect class="b1" x="18" y="-4" width="4" height="8" rx="2" fill="#fff"/></g>' +
-      '<g class="gi g-liste">' + linie('<path d="M-8 -9H16M-8 0H16M-8 9H16"/><path d="M-16 -9h.1M-16 0h.1M-16 9h.1" stroke-width="3.6"/>') + '</g>' +
-      '<g class="gi g-pin">' + linie('<path d="M0 12C-8 3 -10 -1 -10 -4A10 10 0 0 1 10 -4C10 -1 8 3 0 12Z"/><circle cy="-4" r="3.2"/>') + '</g>' +
-      '<g class="gi g-haken"><path d="M-12 0L-4 8L12 -9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></g>' +
+      '<g transform="translate(100 107)">' + glasInhalt() + '</g>' +
       '<g class="xmas"><path d="M56 80C58 46 104 30 132 50C144 60 152 76 155 92L142 84C130 62 92 60 56 80Z" fill="' + rot + '"/>' +
       '<path d="M55 82C80 64 118 63 142 87" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/><circle cx="156" cy="96" r="6.5" fill="#fff"/></g>' +
       '</svg>';
@@ -268,6 +272,31 @@
     '.rund svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '.datei-chip{font-size:12px;color:#444;padding:0 12px 6px}',
     '.fuss-ki{font-size:11px;color:#777;text-align:center;padding:0 10px 8px}',
+    // Glasfenster (Arne 13.11.2026): Tippt man den Kiesel an, wächst sein Glas zum Fenster – dunkles, leicht spiegelndes Glas.
+    '.fenster{color-scheme:dark;background:linear-gradient(160deg,rgba(58,58,66,.9) 0%,rgba(22,22,26,.93) 45%,rgba(8,8,10,.96) 100%);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);color:#f5f5f7;border-radius:26px;box-shadow:0 30px 70px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.38)}',
+    '.fenster::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 46%,rgba(255,255,255,.05) 46%,rgba(255,255,255,.05) 60%,transparent 60%,transparent 66%,rgba(255,255,255,.035) 66%,rgba(255,255,255,.035) 69%,transparent 69%),radial-gradient(120% 60px at 40% 0,rgba(255,255,255,.09),transparent 70%)}',
+    '.fenster>*{position:relative}',
+    '.kopf-leiste{border-bottom:0;padding:16px 14px 12px 20px;gap:14px}.kopf-leiste .mini{width:60px;height:30px;margin:0}',
+    '.kopf-leiste .name{color:#fff;font-weight:600;font-size:18px;line-height:1.15}.kopf-leiste .ki{color:#a1a1a6}',
+    '.kopf-leiste .zu{color:#f5f5f7}.kopf-leiste .zu:hover,.kopf-leiste .zu:focus-visible{background:rgba(255,255,255,.12)}',
+    '.rotlinie{flex:none;height:3px;margin:0 20px;border-radius:2px;background:' + EINST.rot + ';box-shadow:0 0 14px 1px ' + EINST.rot + ';transition:box-shadow .5s,filter .5s}',
+    '.fenster.hoert .rotlinie{box-shadow:0 0 26px 5px ' + EINST.rot + ';filter:brightness(1.25)}',
+    '.marke-zeile{flex:none;display:flex;align-items:center;gap:10px;padding:10px 20px 0;font-size:12.5px;color:#a1a1a6}.marke-zeile[hidden]{display:none}.marke-zeile svg{width:136px;height:20px}',
+    '.leiste2{border-bottom:1px solid rgba(255,255,255,.1);padding:6px 20px}.leiste2 button{color:#cfcfd4}',
+    '.verlauf{padding:14px 18px;scrollbar-color:rgba(255,255,255,.25) transparent}',
+    '.msg.lotse{background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);color:#f5f5f7}.msg.lotse a{color:#fff}',
+    '.msg.nutzer{background:#f5f5f7;color:#1d1d1f}.msg.hinweis{color:#a1a1a6}.quellen{color:#a1a1a6}.quellen a{color:#fff}',
+    '.tipp,.aktion.zweit{background:transparent;color:#f5f5f7;border-color:rgba(255,255,255,.45)}.tipp:hover,.tipp:focus-visible{background:#f5f5f7;color:#1d1d1f}',
+    '.karte{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.3);color:#f5f5f7}.karte a{color:#fff}',
+    '.tabelle,.formular{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.05)}.tabelle th{background:rgba(255,255,255,.1)}.tabelle td,.tabelle .fuss{border-top-color:rgba(255,255,255,.1)}',
+    '.tabelle .offen{color:#ffc57a}.tabelle .weg{color:#a1a1a6}.formular a{color:#fff}',
+    '.tabelle td.m input,.formular input[type=email],.formular input[type=text],.formular input[type=tel],.formular textarea,.eingabe textarea{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#f5f5f7}',
+    '.eingabe{border-top:1px solid rgba(255,255,255,.1);padding:12px 14px}.eingabe textarea{border-radius:22px}.eingabe textarea::placeholder,.formular ::placeholder{color:#86868b}',
+    '.eingabe textarea:focus{outline:2px solid #f5f5f7;border-color:#f5f5f7}',
+    '.rund{background:transparent;border-color:rgba(255,255,255,.45);color:#f5f5f7}.datei-chip,.fuss-ki{color:#a1a1a6}',
+    '@media (prefers-reduced-motion:no-preference){.fenster.waechst{animation:glasauf .46s cubic-bezier(.2,0,0,1)}.fenster.schrumpft{animation:glaszu .2s ease-in forwards}}',
+    '@keyframes glasauf{from{opacity:0;transform:scale(.1);border-radius:60px}45%{opacity:1}to{opacity:1;transform:none}}',
+    '@keyframes glaszu{to{opacity:0;transform:scale(.1)}}',
     '.nur-vorleser{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
     '@media (max-width:600px){.fenster{right:0;bottom:0;width:100vw;max-width:100vw;height:100dvh;border-radius:0}.knopf{width:108px;height:106px}.knopf .schild{display:none}}',
     '@media print{.knopf,.fenster{display:none!important}}'
@@ -283,9 +312,11 @@
     '<span class="schild">' + esc(T.titel) + '</span>' + figurSvg(T.merkmal) + '</button>' +
     '<div class="blase" role="status" hidden><span class="blase-text"></span><button type="button" class="weg-x" aria-label="Hinweis schließen">×</button></div>' +
     '<section class="fenster" role="dialog" aria-modal="false" aria-label="Lotse, KI-Assistent von lechner+hayn" hidden>' +
-    '<div class="kopf-leiste"><div class="mini">' + figurSvg(T.merkmal, true) + '</div>' +
+    '<div class="kopf-leiste"><div class="mini">' + glasSvg() + '</div>' +
     '<div><div class="name">Lotse</div><div class="ki">KI-Assistent von lechner+hayn</div></div>' +
     '<button class="zu" type="button" aria-label="Lotse schließen">×</button></div>' +
+    '<div class="rotlinie" aria-hidden="true"></div>' +
+    '<div class="marke-zeile" hidden><span>Sie sind bei</span><svg viewBox="0 0 150 22" role="img"></svg></div>' +
     '<div class="leiste2"><button type="button" class="mensch">Mit einem Menschen sprechen</button><button type="button" class="ruhig" aria-pressed="false">Lotse ruhig stellen</button></div>' +
     '<div class="verlauf" aria-live="polite"></div>' +
     '<div class="datei-chip" hidden></div>' +
@@ -354,7 +385,13 @@
     if (!SEITE.still) {
       // Das Zeichen (auf Herstellerseiten das Logo) bleibt 2,4 s im Glas, dann kommen die Augen zurück.
       var ankommen = function () { fig.classList.add('ankunft'); setTimeout(function () { fig.classList.remove('ankunft'); }, 2400); };
-      if (SEITE.slug) logoHolen(SEITE.slug, fig, function (bild) { if (bild) fig.querySelector('.g-zeichen').innerHTML = bild; if (bild || SEITE.zeichen) ankommen(); });
+      if (SEITE.slug) logoHolen(SEITE.slug, fig, function (bild, adr) {
+        if (bild) fig.querySelector('.g-zeichen').innerHTML = bild;
+        if (bild || SEITE.zeichen) ankommen();
+        if (adr) { var mz = $('.marke-zeile'), ms = mz.querySelector('svg');   // im Glasfenster steht das Logo immer, auch wenn es fürs Glas zu lang ist
+          ms.setAttribute('aria-label', SEITE.slug.replace(/-/g, ' '));
+          ms.innerHTML = '<image href="' + adr + '" x="0" y="0" width="150" height="22" preserveAspectRatio="xMinYMid meet" filter="url(#lweiss)"/>'; mz.hidden = false; }
+      });
       else if (SEITE.zeichen) setTimeout(ankommen, 700);
       if (!lies('lh-lotse-gegruesst', true) && !NACHT) {
         schreib('lh-lotse-gegruesst', '1', true); schreib('lh-lotse-gewunken', '1');
@@ -385,11 +422,22 @@
 
     function oeffnen() {
       blase.hidden = true; schlaf(false); clearTimeout(ruheUhr);
+      var kr = knopf.getBoundingClientRect();
+      clearTimeout(zuUhr); fenster.classList.remove('schrumpft');
       fenster.hidden = false; knopf.hidden = true; knopf.setAttribute('aria-expanded', 'true');
+      var fr = fenster.getBoundingClientRect();   // Ursprung = Mitte des Glases (im SVG 100 / 107 von 200 × 196)
+      fenster.style.transformOrigin = Math.round(kr.left + kr.width / 2 - fr.left) + 'px ' + Math.round(kr.top + kr.height * 107 / 196 - fr.top) + 'px';
+      fenster.classList.remove('waechst'); void fenster.offsetWidth; fenster.classList.add('waechst');
       if (!zustand.angezeigt.length) begruessen(); else wiederherstellen();
       setTimeout(function () { feld.focus(); }, 30);
     }
-    function schliessen() { fenster.hidden = true; knopf.hidden = false; knopf.setAttribute('aria-expanded', 'false'); knopf.focus(); planen(); }
+    var zuUhr = null;
+    function schliessen() {
+      knopf.hidden = false; knopf.setAttribute('aria-expanded', 'false'); knopf.focus(); planen();
+      if (!window.matchMedia || matchMedia('(prefers-reduced-motion: reduce)').matches) { fenster.hidden = true; return; }
+      fenster.classList.remove('waechst'); fenster.classList.add('schrumpft');
+      zuUhr = setTimeout(function () { fenster.hidden = true; fenster.classList.remove('schrumpft'); }, 200);
+    }
     knopf.addEventListener('click', oeffnen);
     zu.addEventListener('click', schliessen);
     fenster.addEventListener('keydown', function (e) { if (e.key === 'Escape') schliessen(); });
@@ -407,7 +455,8 @@
   }
 
   function blick(k) { var f = root.querySelectorAll('.fig'); for (var i = 0; i < f.length; i++) { f[i].classList.remove('schaut-unten', 'schaut-links'); if (k) f[i].classList.add(k); } }
-  function denkt(an) { var f = root.querySelectorAll('.fig'); for (var i = 0; i < f.length; i++) f[i].classList.toggle('denkt', an); }
+  function denkt(an) { var f = root.querySelectorAll('.fig'); for (var i = 0; i < f.length; i++) f[i].classList.toggle('denkt', an);
+    var fe = root.querySelector('.fenster'); if (fe) fe.classList.toggle('hoert', !!an); }   // er hört zu: die rote Linie wird heller
 
   // ---------- Verlauf ----------
   function zeige(art, inhalt, merken) {
