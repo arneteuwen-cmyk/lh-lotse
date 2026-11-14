@@ -1,0 +1,143 @@
+/* lechner+hayn - Stil des pCon-Konfigurators (eigene Datei seit 13.11.2026).
+   Fassung 2 (13.11.2026): Konfigurator im Stil der Website - Inter, Schwarz auf Weiss,
+   Knoepfe als Pille in Grossbuchstaben wie die Knoepfe der Seite.
+   Regel: keine Klassen mit Zufallsteil (tss-custom-xxxx, mui-xxxx) nennen - sie aendern sich bei pCon-Updates.
+   Schrift: Inter (SIL Open Font License 1.1), Teilmenge Latin, variabel. */
+
+@font-face {
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+/* ---- Grundlage ---- */
+body {
+	color: #000 !important;
+}
+body, body * {
+	font-family: 'Inter', -apple-system, 'Segoe UI', Arial, sans-serif !important;
+}
+p, h2, h3 {
+	color: #000 !important;
+}
+/* noetig fuer die automatische Hoehe des iframes */
+body * {
+	max-height: unset !important;
+}
+.MuiPaper-root:last-child {
+	margin-bottom: 0;
+}
+
+/* ---- Titel und Unterzeile: ausgeblendet, der Titel steht gross auf der Artikelseite (Wunsch 14.11.2026).
+        Wieder einblenden: die folgende Regel loeschen. ---- */
+[class*="ArticleHeaderCustomPlaceholder-root"] {
+	display: none !important;
+}
+
+[class*="ArticleHeaderCustomPlaceholder-primary"] {
+	font-size: 28px !important;
+	font-weight: 600 !important;
+	letter-spacing: -0.01em !important;
+	line-height: 1.18 !important;
+	white-space: normal !important;
+}
+body [class*="ArticleHeaderCustomPlaceholder-secondary"] {
+	color: #5E5E5E !important;
+}
+
+/* ---- Reiter ---- */
+.MuiTabs-root button,
+#egr_tabs button {
+	color: #000 !important;
+	text-transform: uppercase !important;
+	font-size: 13px !important;
+	font-weight: 500 !important;
+	letter-spacing: 0.6px !important;
+	min-width: 0 !important;
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+}
+@media screen and (max-width: 600px) {
+	.MuiTabs-root button,
+	#egr_tabs button {
+		font-size: 12px !important;
+		letter-spacing: 0 !important;
+		padding-left: 2px !important;
+		padding-right: 2px !important;
+	}
+}
+/* rote Linie unter dem aktiven Reiter (Wunsch 14.11.2026) */
+#egr_tab_indicator {
+	background-color: #EB1E26 !important;
+	height: 3px !important;
+}
+
+/* ---- Preis ---- */
+#egr_footer_price {
+	font-size: 28px !important;
+	font-weight: 600 !important;
+}
+body #egr_footer_price_label {
+	font-size: 15px !important;
+	font-weight: 400 !important;
+	color: #5E5E5E !important;
+}
+
+/* ---- Knoepfe: beide gleiche Form, wie die Knoepfe der Website ---- */
+body .MuiPaper-root button#egr_add_to_basket,
+body .MuiPaper-root div#egr_send_request {
+	box-sizing: border-box;
+	min-height: 52px;
+	padding: 10px 25px !important;
+	border: 1px solid #000 !important;
+	border-radius: 25px !important;
+	display: flex;
+	align-items: center;
+	justify-content: center !important;
+	text-transform: uppercase !important;
+	letter-spacing: 2px !important;
+	font-size: 16px !important;
+	font-weight: 400 !important;
+	line-height: 1.5 !important;
+	opacity: 1 !important;
+	box-shadow: none !important;
+	transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+body .MuiPaper-root div#egr_send_request h3 {
+	text-transform: uppercase !important;
+	letter-spacing: 2px !important;
+	font-size: 16px !important;
+	font-weight: 400 !important;
+	text-align: center;
+}
+
+/* Kaufen: schwarz gefuellt */
+body .MuiPaper-root button#egr_add_to_basket {
+	background-color: #000 !important;
+	color: #fff !important;
+}
+body .MuiPaper-root button#egr_add_to_basket:hover {
+	background-color: #fff !important;
+	color: #000 !important;
+}
+
+/* Anfragen: weiss mit schwarzem Rand */
+body .MuiPaper-root div#egr_send_request,
+body .MuiPaper-root div#egr_send_request h3 {
+	background-color: #fff !important;
+	color: #000 !important;
+}
+body .MuiPaper-root div#egr_send_request:hover,
+body .MuiPaper-root div#egr_send_request:hover h3 {
+	background-color: #000 !important;
+	color: #fff !important;
+}
+
+/* Menge und Briefsymbol ausblenden */
+#egr_add_to_basket_number,
+#egr_add_to_basket_x,
+#egr_send_request .egr_footer_icon {
+	display: none !important;
+}
