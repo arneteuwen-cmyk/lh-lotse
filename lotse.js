@@ -1,4 +1,4 @@
-/*! Lotse – KI-Assistent von lechner+hayn · Stand 07.11.2026
+/*! KI-Lotse – Assistent von lechner+hayn · Stand 14.11.2026
  * Einbau: <script src="https://arneteuwen-cmyk.github.io/lh-lotse/lotse.js" defer></script>
  * Optional am Script-Tag: data-bereich="raumakustik" (sonst erkennt der Lotse den Bereich aus der Adresse).
  * Antworten kommen vom n8n-Workflow „Homepage-Lotse (Claude)“ (Jy5Mw3M3bXjj5kCi). Keine Abhängigkeiten.
